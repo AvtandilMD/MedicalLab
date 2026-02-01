@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Medi</title>
+    <style>
+        *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif;margin:0;padding:0}
+        body{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+        .container{text-align:center;max-width:700px;width:100%}
+        .logo{font-size:70px;margin-bottom:15px}
+        .clinic-name{font-size:32px;color:#fff;font-weight:bold;margin-bottom:8px}
+        .clinic-name span{color:#4CAF50}
+        .subtitle{color:#a0a0a0;font-size:14px;margin-bottom:30px}
+
+        /* საძიებო */
+        .search-box{background:rgba(255,255,255,0.1);border-radius:15px;padding:20px;margin-bottom:25px;backdrop-filter:blur(10px)}
+        .search-title{color:#fff;font-size:16px;margin-bottom:12px}
+        .search-input-wrapper{display:flex;gap:10px}
+        .search-input{flex:1;padding:12px 18px;border:2px solid rgba(255,255,255,0.2);border-radius:10px;background:rgba(255,255,255,0.1);color:#fff;font-size:14px;outline:none}
+        .search-input::placeholder{color:rgba(255,255,255,0.5)}
+        .search-input:focus{border-color:#4CAF50}
+        .search-btn{padding:12px 25px;background:#4CAF50;border:none;border-radius:10px;color:#fff;font-weight:bold;cursor:pointer;transition:all .3s}
+        .search-btn:hover{background:#45a049;transform:scale(1.05)}
+
+        /* შედეგები */
+        .results-box{background:rgba(255,255,255,0.95);border-radius:15px;padding:20px;margin-bottom:25px;display:none;max-height:300px;overflow-y:auto}
+        .results-title{color:#333;font-size:16px;margin-bottom:15px;text-align:left}
+        .result-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #eee;text-align:left}
+        .result-item:last-child{border-bottom:none}
+        .result-info{flex:1}
+        .result-name{font-weight:bold;color:#333;font-size:14px}
+        .result-details{font-size:12px;color:#666;margin-top:3px}
+        .result-actions{display:flex;gap:8px}
+        .result-btn{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;transition:all .2s}
+        .btn-download{background:#3498db;color:#fff}
+        .btn-download:hover{background:#2980b9}
+        .btn-delete{background:#e74c3c;color:#fff}
+        .btn-delete:hover{background:#c0392b}
+        .no-results{color:#666;padding:20px;text-align:center}
+        .test-badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:bold;color:#fff;margin-left:8px}
+        .badge-cbc{background:#e74c3c}
+        .badge-urine{background:#f39c12}
+        .badge-crp{background:#9b59b6}
+
+        /* ღილაკები */
+        .buttons{display:flex;flex-direction:column;gap:12px;align-items:center}
+        .btn{display:flex;align-items:center;gap:15px;width:100%;max-width:400px;padding:18px 25px;border:none;border-radius:15px;font-size:16px;font-weight:bold;cursor:pointer;text-decoration:none;color:#fff;transition:all .3s}
+        .btn-blood{background:linear-gradient(135deg,#e74c3c,#c0392b)}
+        .btn-urine{background:linear-gradient(135deg,#f39c12,#d68910)}
+        .btn-crp{background:linear-gradient(135deg,#9b59b6,#8e44ad)}
+        .btn:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+        .btn-icon{font-size:28px}
+        .btn-text{text-align:left}
+        .btn-code{font-size:10px;opacity:0.8;font-weight:normal}
+        .footer{margin-top:30px;color:#666;font-size:11px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">🏥</div>
+    <div class="clinic-name">პრემიუმ <span>მედი</span></div>
+    <div class="subtitle">საოჯახო მედიცინის ცენტრი</div>
+
+    <!-- საძიებო ველი -->
+    <div class="search-box">
+        <div class="search-title">🔍 პაციენტის ძიება</div>
+        <div class="search-input-wrapper">
+            <input type="text" id="searchInput" class="search-input" placeholder="შეიყვანეთ გვარი ან სახელი..." onkeyup="handleSearch(event)">
+            <button class="search-btn" onclick="searchPatients()">ძიება</button>
+        </div>
+    </div>
+
+    <!-- ძიების შედეგები -->
+    <div class="results-box" id="resultsBox">
+        <div class="results-title">📋 ნაპოვნი ჩანაწერები: <span id="resultsCount">0</span></div>
+        <div id="resultsList"></div>
+    </div>
+
+    <!-- ანალიზების ღილაკები -->
+    <div class="buttons">
+        <a href="/cbc" class="btn btn-blood">
+            <span class="btn-icon">🩸</span>
+            <span class="btn-text">სისხლის საერთო ანალიზი<br><span class="btn-code">BL6 - CBC</span></span>
+        </a>
+        <a href="/urine" class="btn btn-urine">
+            <span class="btn-icon">🧪</span>
+            <span class="btn-text">შარდის საერთო ანალიზი<br><span class="btn-code">UR.7 - Urinalysis</span></span>
+        </a>
+        <a href="/crp" class="btn btn-crp">
+            <span class="btn-icon">🧬</span>
+            <span class="btn-text">C-რეაქტიული ცილა<br><span class="btn-code">BL.7.9.1 - CRP</span></span>
+        </a>
+        <a href="/troponin" class="btn btn-blood">
+    <span class="btn-icon">❤️</span>
+    <span class="btn-text">
+        <span>ტროპონინის ტესტი</span>
+        <span class="btn-code">BL.7.8 - Troponin</span>
+    </span>
+        </a>
+    </div>
+
+
+    <div class="footer">ტელ: 558-27-55-51 | 577-03-97-70</div>
+</div>
+
+<script>
+function handleSearch(event) {
+    if (event.key === 'Enter') {
+        searchPatients();
+    }
+}
+
+function searchPatients() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (query.length < 2) {
+        alert('შეიყვანეთ მინიმუმ 2 სიმბოლო');
+        return;
+    }
+
+    fetch('/search?q=' + encodeURIComponent(query))
+        .then(response => response.json())
+        .then(data => {
+            displayResults(data.results);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+function displayResults(results) {
+    const resultsBox = document.getElementById('resultsBox');
+    const resultsList = document.getElementById('resultsList');
+    const resultsCount = document.getElementById('resultsCount');
+
+    resultsCount.textContent = results.length;
+
+    if (results.length === 0) {
+        resultsList.innerHTML = '<div class="no-results">ჩანაწერები ვერ მოიძებნა</div>';
+    } else {
+        let html = '';
+        results.forEach(patient => {
+            const badgeClass = patient.test_type === 'CBC' ? 'badge-cbc' :
+                              (patient.test_type === 'Urine' ? 'badge-urine' : 'badge-crp');
+            html += `
+                <div class="result-item" id="record-${patient.id}">
+                    <div class="result-info">
+                        <div class="result-name">
+                            ${patient.first_name} ${patient.last_name}
+                            <span class="test-badge ${badgeClass}">${patient.test_type}</span>
+                        </div>
+                        <div class="result-details">
+                            ასაკი: ${patient.age || '-'} | თარიღი: ${patient.test_date} | შექმნილია: ${patient.created_at}
+                        </div>
+                    </div>
+                    <div class="result-actions">
+                        <button class="result-btn btn-download" onclick="downloadFile('${patient.filename}')">📥 ჩამოტვირთვა</button>
+                        <button class="result-btn btn-delete" onclick="deleteRecord(${patient.id})">🗑️ წაშლა</button>
+                    </div>
+                </div>
+            `;
+        });
+        resultsList.innerHTML = html;
+    }
+
+    resultsBox.style.display = 'block';
+}
+
+function downloadFile(filename) {
+    window.location.href = '/download/' + encodeURIComponent(filename);
+}
+
+function deleteRecord(recordId) {
+    if (!confirm('ნამდვილად გსურთ წაშლა?')) return;
+
+    fetch('/delete/' + recordId, {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('record-' + recordId).remove();
+                const count = document.getElementById('resultsCount');
+                count.textContent = parseInt(count.textContent) - 1;
+            } else {
+                alert('წაშლა ვერ მოხერხდა');
+            }
+        });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <title>ტროპონინის ტესტი - Premium Medi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+        body{background:linear-gradient(135deg,#e74c3c,#c0392b);min-height:100vh;margin:0;padding:20px}
+        .container{max-width:800px;margin:0 auto;background:#fff;border-radius:20px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+        .header{text-align:center;border-bottom:3px solid #e74c3c;padding-bottom:15px;margin-bottom:20px}
+        .logo{font-size:40px;color:#e74c3c}
+        .clinic-name{font-size:24px;color:#2e7d32;font-weight:bold;margin:10px 0}
+        .section{background:#fdf2f2;border-radius:15px;padding:20px;margin-bottom:20px;border-left:5px solid #e74c3c}
+        .section-title{color:#c0392b;font-size:18px;font-weight:bold;margin-bottom:15px}
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px}
+        .form-group{display:flex;flex-direction:column}
+        label{font-weight:600;color:#34495e;margin-bottom:4px;font-size:13px}
+        input{padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px}
+        input:focus{outline:none;border-color:#e74c3c}
+        table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff}
+        th{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;padding:12px;text-align:left;font-size:13px}
+        td{padding:12px;border-bottom:1px solid #ecf0f1;font-size:13px}
+        .result-input{width:100%;padding:10px;border:2px solid #e74c3c;border-radius:8px;text-align:center;font-weight:bold;font-size:16px}
+        .footer-section{border-left-color:#7f8c8d;background:#f8f9fa}
+        .buttons{text-align:center;margin-top:25px;padding-top:25px;border-top:2px dashed #bdc3c7}
+        .btn{padding:15px 40px;font-size:16px;font-weight:bold;border-radius:50px;border:none;cursor:pointer;margin:8px;transition:all .3s;color:#fff}
+        .btn-print{background:linear-gradient(135deg,#3498db,#2980b9)}
+        .btn-save{background:linear-gradient(135deg,#27ae60,#2ecc71)}
+        .btn:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+        .required::after{content:' *';color:#e74c3c}
+        .ref{font-size:11px;color:#7f8c8d}
+        .back-btn{display:inline-block;margin-bottom:15px;padding:8px 16px;background:#95a5a6;color:#fff;text-decoration:none;border-radius:8px;font-size:13px}
+        .back-btn:hover{background:#7f8c8d}
+        .test-title{text-align:center;color:#c0392b;font-size:16px;margin-bottom:10px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/" class="back-btn">← მთავარ გვერდზე</a>
+    <div class="header">
+        <div class="logo">🧪</div>
+        <div class="clinic-name">PREMIUM MEDI / პრემიუმ მედი</div>
+        <div>საოჯახო მედიცინის ცენტრი | ტელ: 558-27-55-51, 577-03-97-70</div>
+    </div>
+    <form id="mainForm" method="POST">
+        <div class="section">
+            <div class="section-title">👤 პაციენტის ინფორმაცია</div>
+            <div class="form-row">
+                <div class="form-group"><label class="required">სახელი</label><input type="text" name="first_name" id="first_name" required></div>
+                <div class="form-group"><label class="required">გვარი</label><input type="text" name="last_name" id="last_name" required></div>
+                <div class="form-group"><label>ასაკი</label><input type="number" name="age"></div>
+                <div class="form-group"><label class="required">თარიღი</label><input type="date" name="test_date" id="test_date" required></div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-title">ტროპონინის ტესტი (BL.7.8)</div>
+            <div class="test-title">{{ template.test_info.title }}</div>
+            <table>
+                <thead><tr><th>კოდი</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><strong>{{ template.test_info.results_table[0].code }}</strong></td>
+                        <td>{{ template.test_info.results_table[0].parameter }}</td>
+                        <td><input type="text" class="result-input" name="trop_result"></td>
+                        <td class="ref">{{ template.test_info.results_table[0].reference_range }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section footer-section">
+            <div class="section-title">👨‍⚕️ გამოკვლევის ინფორმაცია</div>
+            <div class="form-group"><label>გამოკვლევა შეასრულა</label><input type="text" name="doctor_name"></div>
+            <div class="form-group"><label>აპარატურა</label><input type="text" value="{{ template.footer_note.equipment }}" readonly style="background:#f0f0f0"></div>
+        </div>
+        <div class="buttons">
+            <button type="button" class="btn btn-print" onclick="printDoc()">🖨️ ბეჭდვა</button>
+            <button type="button" class="btn btn-save" onclick="saveDoc()">💾 შენახვა (.DOCX)</button>
+        </div>
+    </form>
+</div>
+<script>
+document.getElementById('test_date').value = new Date().toISOString().split('T')[0];
+function validate(){
+    var fn=document.getElementById('first_name').value.trim();
+    var ln=document.getElementById('last_name').value.trim();
+    var dt=document.getElementById('test_date').value.trim();
+    if(!fn||!ln||!dt){alert('შეავსეთ სავალდებულო ველები');return false;}
+    return true;
+}
+function printDoc(){if(!validate())return;var f=document.getElementById('mainForm');f.action='/troponin/print';f.target='_blank';f.submit();}
+function saveDoc(){if(!validate())return;var f=document.getElementById('mainForm');f.action='/troponin/doc';f.target='_self';f.submit();}
+</script>
+</body>
+</html>

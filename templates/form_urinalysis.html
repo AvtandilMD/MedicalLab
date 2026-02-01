@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>შარდის ანალიზი</title>
+    <style>
+        *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+        body{background:linear-gradient(135deg,#f39c12,#d68910);min-height:100vh;margin:0;padding:20px}
+        .container{max-width:1000px;margin:0 auto;background:#fff;border-radius:20px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+        .header{text-align:center;border-bottom:3px solid #f39c12;padding-bottom:15px;margin-bottom:20px}
+        .logo{font-size:40px;color:#e74c3c}
+        .clinic-name{font-size:24px;color:#2e7d32;font-weight:bold;margin:10px 0}
+        .section{background:#f8f9fa;border-radius:15px;padding:20px;margin-bottom:20px;border-left:5px solid #f39c12}
+        .section-title{color:#2c3e50;font-size:18px;font-weight:bold;margin-bottom:15px}
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px}
+        .form-group{display:flex;flex-direction:column}
+        label{font-weight:600;color:#34495e;margin-bottom:4px;font-size:13px}
+        input{padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px}
+        input:focus{outline:none;border-color:#f39c12}
+        table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff}
+        th{background:linear-gradient(135deg,#f39c12,#d68910);color:#fff;padding:10px;text-align:left;font-size:12px}
+        td{padding:8px;border-bottom:1px solid #ecf0f1;font-size:12px}
+        tr:hover{background:#fef9e7}
+        .result-input{width:100%;padding:6px;border:2px solid #e0e0e0;border-radius:6px;text-align:center}
+        .microscopy-section{border-left-color:#27ae60}
+        .microscopy-section th{background:linear-gradient(135deg,#27ae60,#229954)}
+        .others-section{border-left-color:#3498db}
+        .others-section th{background:linear-gradient(135deg,#3498db,#2980b9)}
+        .footer-section{border-left-color:#9b59b6}
+        .buttons{text-align:center;margin-top:25px;padding-top:25px;border-top:2px dashed #bdc3c7}
+        .btn{padding:15px 40px;font-size:16px;font-weight:bold;border-radius:50px;border:none;cursor:pointer;margin:8px;transition:all .3s;color:#fff}
+        .btn-print{background:linear-gradient(135deg,#3498db,#2980b9)}
+        .btn-save{background:linear-gradient(135deg,#27ae60,#2ecc71)}
+        .btn:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+        .required::after{content:' *';color:#e74c3c}
+        .ref{font-size:10px;color:#7f8c8d}
+        .sub-title{color:#27ae60;font-weight:bold;margin-bottom:8px}
+        .back-btn{display:inline-block;margin-bottom:15px;padding:8px 16px;background:#95a5a6;color:#fff;text-decoration:none;border-radius:8px;font-size:13px}
+        .back-btn:hover{background:#7f8c8d}
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/" class="back-btn">← მთავარ გვერდზე</a>
+    <div class="header">
+        <div class="logo">✚</div>
+        <div class="clinic-name">PREMIUM MEDI / პრემიუმ მედი</div>
+        <div>საოჯახო მედიცინის ცენტრი | ტელ: 577-03-97-70</div>
+    </div>
+    <form id="mainForm" method="POST">
+        <div class="section">
+            <div class="section-title">👤 პაციენტის ინფორმაცია</div>
+            <div class="form-row">
+                <div class="form-group"><label class="required">სახელი</label><input type="text" name="first_name" id="first_name" required></div>
+                <div class="form-group"><label class="required">გვარი</label><input type="text" name="last_name" id="last_name" required></div>
+                <div class="form-group"><label>ასაკი</label><input type="number" name="age"></div>
+                <div class="form-group"><label class="required">თარიღი</label><input type="date" name="test_date" id="test_date" required></div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-title">🧪 ფიზიკო-ქიმიური თვისებები</div>
+            <table>
+                <thead><tr><th>აბრევ.</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th><th>ერთეული</th></tr></thead>
+                <tbody>
+                {% for item in template.physico_chemical %}
+                <tr>
+                    <td><strong>{{ item.abbr }}</strong></td>
+                    <td>{{ item.parameter }}</td>
+                    <td><input type="text" class="result-input" name="phys_{{ loop.index0 }}"></td>
+                    <td class="ref">{{ item.norm }}</td>
+                    <td class="ref">{{ item.unit }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="section microscopy-section">
+            <div class="section-title">🔬 მიკროსკოპია</div>
+            <div class="form-row">
+                <div>
+                    <div class="sub-title">ეპითელიუმი</div>
+                    <table><thead><tr><th>ტიპი</th><th>შედეგი</th></tr></thead><tbody>
+                    {% for item in template.microscopy.epithelium %}
+                    <tr><td>{{ item.label }}</td><td><input type="text" class="result-input" name="epi_{{ item.key }}"></td></tr>
+                    {% endfor %}
+                    </tbody></table>
+                </div>
+                <div>
+                    <div class="sub-title">ცილინდრები</div>
+                    <table><thead><tr><th>ტიპი</th><th>შედეგი</th></tr></thead><tbody>
+                    {% for item in template.microscopy.cylinders %}
+                    <tr><td>{{ item.label }}</td><td><input type="text" class="result-input" name="cyl_{{ item.key }}"></td></tr>
+                    {% endfor %}
+                    </tbody></table>
+                </div>
+            </div>
+        </div>
+        <div class="section others-section">
+            <div class="section-title">📋 სხვა მონაცემები</div>
+            <div class="form-row">
+                {% for item in template.microscopy.others %}
+                <div class="form-group"><label>{{ item.parameter }}</label><input type="text" name="other_{{ item.key }}"></div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="section footer-section">
+            <div class="section-title">👨‍⚕️ გამოკვლევის ინფორმაცია</div>
+            <div class="form-row">
+                <div class="form-group"><label>გამოკვლევა შეასრულა</label><input type="text" name="doctor_name"></div>
+                <div class="form-group"><label>აპარატურა</label><input type="text" value="{{ template.footer.equipment }}" readonly style="background:#f0f0f0"></div>
+            </div>
+        </div>
+        <div class="buttons">
+            <button type="button" class="btn btn-print" onclick="printDoc()">🖨️ ბეჭდვა</button>
+            <button type="button" class="btn btn-save" onclick="saveDoc()">💾 შენახვა (.DOCX)</button>
+        </div>
+    </form>
+</div>
+<script>
+document.getElementById('test_date').value = new Date().toISOString().split('T')[0];
+function validate(){
+    var fn=document.getElementById('first_name').value.trim();
+    var ln=document.getElementById('last_name').value.trim();
+    var dt=document.getElementById('test_date').value.trim();
+    if(!fn||!ln||!dt){alert('შეავსეთ სავალდებულო ველები');return false;}
+    return true;
+}
+function printDoc(){if(!validate())return;var f=document.getElementById('mainForm');f.action='/urine/print';f.target='_blank';f.submit();}
+function saveDoc(){if(!validate())return;var f=document.getElementById('mainForm');f.action='/urine/doc';f.target='_self';f.submit();}
+</script>
+</body>
+</html>

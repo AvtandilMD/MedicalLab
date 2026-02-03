@@ -207,14 +207,14 @@ def cbc_form(): return render_template('form_cbc.html', template=CBC_TEMPLATE)
 def create_cbc_document(form_data):
     doc = Document()
 
-    # მარჯინები კიდევ უფრო შევამციროთ
+    # მარჯინები - კომპაქტური
     for section in doc.sections:
-        section.top_margin = Cm(0.5)
+        section.top_margin = Cm(0.8)
         section.bottom_margin = Cm(0.5)
-        section.left_margin = Cm(1.0)
-        section.right_margin = Cm(1.0)
+        section.left_margin = Cm(1.2)
+        section.right_margin = Cm(1.2)
 
-    # ჰედერი - 14pt (იყო 16pt)
+    # ჰედერი - 14pt
     h = doc.add_paragraph()
     h.alignment = WD_ALIGN_PARAGRAPH.CENTER
     h.paragraph_format.space_after = Pt(0)
@@ -223,53 +223,50 @@ def create_cbc_document(form_data):
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 100, 0)
 
-    # სუბტიტრი - 10pt (იყო 12pt)
+    # სუბტიტრი - 9pt
     sub = doc.add_paragraph()
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sub.paragraph_format.space_after = Pt(2)
+    sub.paragraph_format.space_after = Pt(4)
     sr = sub.add_run("საოჯახო მედიცინის ცენტრი | ტელ: 558-27-55-51")
-    sr.font.size = Pt(10)
+    sr.font.size = Pt(9)
 
-    # სათაური - 12pt (იყო 14pt)
+    # სათაური - 11pt
     t_p = doc.add_paragraph()
     t_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    t_p.paragraph_format.space_after = Pt(4)
+    t_p.paragraph_format.space_after = Pt(8)
     t = t_p.add_run("BL6 - სისხლის საერთო ანალიზი CBC")
-    t.font.size = Pt(12)
+    t.font.size = Pt(11)
     t.font.bold = True
 
-    # პაციენტის ინფო - 11pt (იყო 13pt)
+    # პაციენტის ინფო - 10pt
     info = doc.add_paragraph()
-    info.paragraph_format.space_after = Pt(4)
+    info.paragraph_format.space_after = Pt(8)
     info.add_run("პაციენტი: ").bold = True
     info.add_run(
         f"{form_data.get('first_name', '')} {form_data.get('last_name', '')}, {form_data.get('age', '')} წ.   ")
     info.add_run("თარიღი: ").bold = True
     info.add_run(form_data.get('test_date', ''))
     for r in info.runs:
-        r.font.size = Pt(11)
+        r.font.size = Pt(10)
 
-    # სისხლის ანალიზი სათაური - 11pt
+    # სისხლის ანალიზი სათაური - 10pt
     p1 = doc.add_paragraph()
     p1.paragraph_format.space_after = Pt(2)
     p1_run = p1.add_run("სისხლის საერთო ანალიზი")
     p1_run.bold = True
-    p1_run.font.size = Pt(11)
+    p1_run.font.size = Pt(10)
 
-    # ცხრილი 1 - 9pt (იყო 11pt)
+    # ცხრილი 1 - 10pt
     table = doc.add_table(rows=1, cols=5)
     table.style = 'Table Grid'
-    # სტრიქონების სიმაღლის შემცირება
-    table.autofit = False
 
     for i, h_txt in enumerate(['აბრევ.', 'პარამეტრი', 'შედეგი', 'ნორმა', 'ერთ.']):
         cell = table.rows[0].cells[i]
         cell.text = h_txt
         set_cell_shading(cell, 'D9E2F3')
-        cell.paragraphs[0].runs[0].font.size = Pt(9)
+        cell.paragraphs[0].runs[0].font.size = Pt(10)
         cell.paragraphs[0].runs[0].font.bold = True
-        cell.paragraphs[0].paragraph_format.space_after = Pt(0)
-        cell.paragraphs[0].paragraph_format.line_spacing = Pt(10)  # ხაზებს შორის მანძილი
+        cell.paragraphs[0].paragraph_format.space_after = Pt(1)
 
     for item in CBC_TEMPLATE["cbc_analysis"]:
         row = table.add_row()
@@ -280,30 +277,28 @@ def create_cbc_document(form_data):
         row.cells[4].text = item['unit']
         for c in row.cells:
             for p in c.paragraphs:
-                p.paragraph_format.space_after = Pt(0)
-                p.paragraph_format.line_spacing = Pt(10)
+                p.paragraph_format.space_after = Pt(1)
                 for r in p.runs:
-                    r.font.size = Pt(9)
+                    r.font.size = Pt(10)
 
-    # ლეიკოციტარული ფორმულა სათაური - 11pt
+    # ლეიკოციტარული ფორმულა სათაური - 10pt
     p2 = doc.add_paragraph()
     p2.paragraph_format.space_after = Pt(2)
-    p2.paragraph_format.space_before = Pt(4)
+    p2.paragraph_format.space_before = Pt(8)
     p2_run = p2.add_run("ლეიკოციტარული ფორმულა")
     p2_run.bold = True
-    p2_run.font.size = Pt(11)
+    p2_run.font.size = Pt(10)
 
-    # ცხრილი 2 - 9pt
+    # ცხრილი 2 - 10pt
     lt = doc.add_table(rows=1, cols=3)
     lt.style = 'Table Grid'
     for i, h_txt in enumerate(['პარამეტრი', 'შედეგი', 'ნორმა']):
         cell = lt.rows[0].cells[i]
         cell.text = h_txt
         set_cell_shading(cell, 'E2F0D9')
-        cell.paragraphs[0].runs[0].font.size = Pt(9)
+        cell.paragraphs[0].runs[0].font.size = Pt(10)
         cell.paragraphs[0].runs[0].font.bold = True
-        cell.paragraphs[0].paragraph_format.space_after = Pt(0)
-        cell.paragraphs[0].paragraph_format.line_spacing = Pt(10)
+        cell.paragraphs[0].paragraph_format.space_after = Pt(1)
 
     for idx, item in enumerate(CBC_TEMPLATE["leukocyte_formula"]):
         row = lt.add_row()
@@ -312,15 +307,14 @@ def create_cbc_document(form_data):
         row.cells[2].text = item['norm']
         for c in row.cells:
             for p in c.paragraphs:
-                p.paragraph_format.space_after = Pt(0)
-                p.paragraph_format.line_spacing = Pt(10)
+                p.paragraph_format.space_after = Pt(1)
                 for r in p.runs:
-                    r.font.size = Pt(9)
+                    r.font.size = Pt(10)
 
     # მორფოლოგია - 10pt
     morph = doc.add_paragraph()
-    morph.paragraph_format.space_before = Pt(4)
-    morph.paragraph_format.space_after = Pt(0)
+    morph.paragraph_format.space_before = Pt(8)
+    morph.paragraph_format.space_after = Pt(2)
     morph.add_run("ერითროც. მორფოლოგია: ").bold = True
     morph.add_run(form_data.get('erythrocyte_morphology', '') + "  ")
     morph.add_run("ლეიკოც. მორფოლოგია: ").bold = True
@@ -330,7 +324,7 @@ def create_cbc_document(form_data):
 
     # ფუტერი - 10pt
     foot = doc.add_paragraph()
-    foot.paragraph_format.space_before = Pt(6)
+    foot.paragraph_format.space_before = Pt(12)
     foot.add_run("გამოკვლევა შეასრულა: ").bold = True
     foot.add_run(form_data.get('doctor_name', '') + "    ")
     foot.add_run("ხელმოწერა: _________")

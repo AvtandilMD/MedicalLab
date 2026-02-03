@@ -42,24 +42,26 @@
         .badge-cbc{background:#e74c3c}
         .badge-urine{background:#f39c12}
         .badge-crp{background:#9b59b6}
+        .badge-trop{background:#e67e22}
 
         /* ღილაკები */
         .buttons{display:flex;flex-direction:column;gap:12px;align-items:center}
-        .btn{display:flex;align-items:center;gap:15px;width:100%;max-width:400px;padding:18px 25px;border:none;border-radius:15px;font-size:16px;font-weight:bold;cursor:pointer;text-decoration:none;color:#fff;transition:all .3s}
+        .btn{display:flex;align-items:center;gap:15px;width:100%;max-width:450px;padding:18px 25px;border:none;border-radius:15px;font-size:16px;font-weight:bold;cursor:pointer;text-decoration:none;color:#fff;transition:all .3s}
         .btn-blood{background:linear-gradient(135deg,#e74c3c,#c0392b)}
         .btn-urine{background:linear-gradient(135deg,#f39c12,#d68910)}
         .btn-crp{background:linear-gradient(135deg,#9b59b6,#8e44ad)}
+        .btn-trop{background:linear-gradient(135deg,#e67e22,#d35400)}
         .btn:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,0.3)}
-        .btn-icon{font-size:28px}
-        .btn-text{text-align:left}
-        .btn-code{font-size:10px;opacity:0.8;font-weight:normal}
+        .btn-icon{font-size:28px;width:40px;text-align:center}
+        .btn-text{text-align:left;flex:1}
+        .btn-code{font-size:10px;opacity:0.8;font-weight:normal;display:block;margin-top:2px}
         .footer{margin-top:30px;color:#666;font-size:11px}
     </style>
 </head>
 <body>
 <div class="container">
     <div class="logo">🏥</div>
-    <div class="clinic-name">პრემიუმ <span>მედი</span></div>
+    <div class="clinic-name">PREMIUM <span>MEDI</span></div>
     <div class="subtitle">საოჯახო მედიცინის ცენტრი</div>
 
     <!-- საძიებო ველი -->
@@ -81,25 +83,21 @@
     <div class="buttons">
         <a href="/cbc" class="btn btn-blood">
             <span class="btn-icon">🩸</span>
-            <span class="btn-text">სისხლის საერთო ანალიზი<br><span class="btn-code">BL6 - CBC</span></span>
+            <span class="btn-text">სისხლის საერთო ანალიზი<span class="btn-code">BL6 - CBC Analysis</span></span>
         </a>
         <a href="/urine" class="btn btn-urine">
             <span class="btn-icon">🧪</span>
-            <span class="btn-text">შარდის საერთო ანალიზი<br><span class="btn-code">UR.7 - Urinalysis</span></span>
+            <span class="btn-text">შარდის საერთო ანალიზი<span class="btn-code">UR.7 - Urinalysis</span></span>
         </a>
         <a href="/crp" class="btn btn-crp">
             <span class="btn-icon">🧬</span>
-            <span class="btn-text">C-რეაქტიული ცილა<br><span class="btn-code">BL.7.9.1 - CRP</span></span>
+            <span class="btn-text">C-რეაქტიული ცილა<span class="btn-code">BL.7.9.1 - CRP / hsCRP</span></span>
         </a>
-        <a href="/troponin" class="btn btn-blood">
-    <span class="btn-icon">❤️</span>
-    <span class="btn-text">
-        <span>ტროპონინის ტესტი</span>
-        <span class="btn-code">BL.7.8 - Troponin</span>
-    </span>
+        <a href="/trop" class="btn btn-trop">
+            <span class="btn-icon">❤️</span>
+            <span class="btn-text">ტროპონინის ტესტი<span class="btn-code">BL.7.8 - Troponin Test</span></span>
         </a>
     </div>
-
 
     <div class="footer">ტელ: 558-27-55-51 | 577-03-97-70</div>
 </div>
@@ -140,8 +138,11 @@ function displayResults(results) {
     } else {
         let html = '';
         results.forEach(patient => {
-            const badgeClass = patient.test_type === 'CBC' ? 'badge-cbc' :
-                              (patient.test_type === 'Urine' ? 'badge-urine' : 'badge-crp');
+            let badgeClass = 'badge-cbc';
+            if(patient.test_type === 'Urine') badgeClass = 'badge-urine';
+            else if(patient.test_type === 'CRP') badgeClass = 'badge-crp';
+            else if(patient.test_type === 'Troponin') badgeClass = 'badge-trop';
+
             html += `
                 <div class="result-item" id="record-${patient.id}">
                     <div class="result-info">

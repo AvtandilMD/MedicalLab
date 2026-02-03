@@ -91,20 +91,17 @@ CBC_TEMPLATE = {
          "unit": "მმ/სთ"}
     ],
     "leukocyte_formula": [
-        {"parameter": "მიელოციტი (MIEL %)", "norm": "0%"},
-        {"parameter": "მეტამიელოციტი (METAM %)", "norm": "0%"},
+        {"parameter": "მიელოციტი (MIEL %)", "norm": "0%"}, {"parameter": "მეტამიელოციტი (METAM %)", "norm": "0%"},
         {"parameter": "ჩხირბირთვიანი ნეიტროფილი (Rod NEUT %)", "norm": "0-6%"},
         {"parameter": "სეგმენტბირთვიანი ნეიტროფილი (SEG %)", "norm": "47-72%"},
-        {"parameter": "ეოზინოფილი (EO %)", "norm": "0.5-5%"},
-        {"parameter": "ბაზოფილი (BASO %)", "norm": "0-1%"},
-        {"parameter": "ლიმფოციტი (LYMPH %)", "norm": "19-37%"},
-        {"parameter": "მონოციტი (MONO %)", "norm": "3-11%"},
+        {"parameter": "ეოზინოფილი (EO %)", "norm": "0.5-5%"}, {"parameter": "ბაზოფილი (BASO %)", "norm": "0-1%"},
+        {"parameter": "ლიმფოციტი (LYMPH %)", "norm": "19-37%"}, {"parameter": "მონოციტი (MONO %)", "norm": "3-11%"},
         {"parameter": "პლაზმური უჯრედი (PLAZ %)", "norm": "0.5-1%"}
     ]
 }
 
 URINE_TEMPLATE = {
-    "header": {"subtitle": "საოჯახო მედიცინის ცენტრი", "phones": ["577-03-97-70"]},
+    "header": {"subtitle": "საოჯახო მედიცინის ცენტრი", "phones": ["558-27-55-51", "577-03-97-70"]},
     "test_info": {"code": "UR.7", "name": "შარდის საერთო ანალიზი"},
     "physico_chemical": [
         {"abbr": "", "parameter": "რაოდენობა", "norm": "", "unit": "მლ"},
@@ -133,7 +130,7 @@ URINE_TEMPLATE = {
 }
 
 CRP_TEMPLATE = {
-    "clinic_info": {"description": "საოჯახო მედიცინის ცენტრი", "phones": ["577-03-97-70"]},
+    "clinic_info": {"description": "საოჯახო მედიცინის ცენტრი", "phones": ["558-27-55-51", "577-03-97-70"]},
     "test_details": {"title_ge": "მაღალი მგრძნობელობის C-რეაქტიული ცილა (BL.7.9.1)"},
     "test_results": [
         {"code": "CRP", "parameter": "C-რეაქტიული ცილა", "reference_range": "0-10", "unit": "mg/L (მგ/ლ)"},
@@ -141,11 +138,12 @@ CRP_TEMPLATE = {
          "unit": "mg/L (მგ/ლ)"}
     ]
 }
+
 TROPONIN_TEMPLATE = {
-    "clinic_info": {
+    "document_info": {
         "clinic_name": "პრემიუმ მედი",
         "clinic_description": "საოჯახო მედიცინის ცენტრი",
-        "contact_info_raw": "მისამართი და საკონტაქტო ნომრები (577-03-97-70)"
+        "contact": "ტელ: 558-27-55-51, 577-03-97-70"
     },
     "test_info": {
         "title": "ტროპონინის ტესტი (BL.7.8)",
@@ -164,15 +162,14 @@ TROPONIN_TEMPLATE = {
 
 
 def set_cell_shading(cell, color):
-    shading_elm = OxmlElement('w:shd')
-    shading_elm.set(qn('w:fill'), color)
+    shading_elm = OxmlElement('w:shd');
+    shading_elm.set(qn('w:fill'), color);
     cell._tc.get_or_add_tcPr().append(shading_elm)
 
 
 # ========== ROUTES ==========
 @app.route('/')
-def index():
-    return render_template('index.html')
+def index(): return render_template('index.html')
 
 
 @app.route('/search')
@@ -195,53 +192,53 @@ def delete_record(record_id):
     for i, p in enumerate(db["patients"]):
         if p["id"] == record_id:
             path = os.path.join(get_saved_docs_folder(), p["filename"])
-            if os.path.exists(path):
-                os.remove(path)
-            db["patients"].pop(i)
-            save_database(db)
+            if os.path.exists(path): os.remove(path)
+            db["patients"].pop(i);
+            save_database(db);
             return jsonify({"success": True})
     return jsonify({"success": False})
 
 
-# ========== CBC ==========
+# ========== CBC FUNCTIONS ==========
 @app.route('/cbc')
-def cbc_form():
-    return render_template('form_cbc.html', template=CBC_TEMPLATE)
+def cbc_form(): return render_template('form_cbc.html', template=CBC_TEMPLATE)
 
 
 def create_cbc_document(form_data):
     doc = Document()
-    for s in doc.sections:
-        s.top_margin = Cm(0.5)
-        s.bottom_margin = Cm(0.5)
-        s.left_margin = Cm(1.0)
-        s.right_margin = Cm(1.0)
 
-    # ჰედერი - 16pt
+    # მარჯინები კიდევ უფრო შევამციროთ
+    for section in doc.sections:
+        section.top_margin = Cm(0.5)
+        section.bottom_margin = Cm(0.5)
+        section.left_margin = Cm(1.0)
+        section.right_margin = Cm(1.0)
+
+    # ჰედერი - 14pt (იყო 16pt)
     h = doc.add_paragraph()
     h.alignment = WD_ALIGN_PARAGRAPH.CENTER
     h.paragraph_format.space_after = Pt(0)
     run = h.add_run("PREMIUM MEDI / პრემიუმ მედი")
-    run.font.size = Pt(16)
+    run.font.size = Pt(14)
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 100, 0)
 
-    # სუბტიტრი - 12pt
+    # სუბტიტრი - 10pt (იყო 12pt)
     sub = doc.add_paragraph()
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
     sub.paragraph_format.space_after = Pt(2)
-    sr = sub.add_run("საოჯახო მედიცინის ცენტრი | ტელ: 577-03-97-70")
-    sr.font.size = Pt(12)
+    sr = sub.add_run("საოჯახო მედიცინის ცენტრი | ტელ: 558-27-55-51")
+    sr.font.size = Pt(10)
 
-    # სათაური - 14pt
+    # სათაური - 12pt (იყო 14pt)
     t_p = doc.add_paragraph()
     t_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     t_p.paragraph_format.space_after = Pt(4)
     t = t_p.add_run("BL6 - სისხლის საერთო ანალიზი CBC")
-    t.font.size = Pt(14)
+    t.font.size = Pt(12)
     t.font.bold = True
 
-    # პაციენტის ინფო - 13pt
+    # პაციენტის ინფო - 11pt (იყო 13pt)
     info = doc.add_paragraph()
     info.paragraph_format.space_after = Pt(4)
     info.add_run("პაციენტი: ").bold = True
@@ -250,25 +247,29 @@ def create_cbc_document(form_data):
     info.add_run("თარიღი: ").bold = True
     info.add_run(form_data.get('test_date', ''))
     for r in info.runs:
-        r.font.size = Pt(13)
+        r.font.size = Pt(11)
 
-    # სისხლის ანალიზი სათაური - 13pt
+    # სისხლის ანალიზი სათაური - 11pt
     p1 = doc.add_paragraph()
     p1.paragraph_format.space_after = Pt(2)
     p1_run = p1.add_run("სისხლის საერთო ანალიზი")
     p1_run.bold = True
-    p1_run.font.size = Pt(13)
+    p1_run.font.size = Pt(11)
 
-    # ცხრილი - header 11pt, შიგთავსი 11pt
+    # ცხრილი 1 - 9pt (იყო 11pt)
     table = doc.add_table(rows=1, cols=5)
     table.style = 'Table Grid'
+    # სტრიქონების სიმაღლის შემცირება
+    table.autofit = False
+
     for i, h_txt in enumerate(['აბრევ.', 'პარამეტრი', 'შედეგი', 'ნორმა', 'ერთ.']):
         cell = table.rows[0].cells[i]
         cell.text = h_txt
         set_cell_shading(cell, 'D9E2F3')
-        cell.paragraphs[0].runs[0].font.size = Pt(11)
+        cell.paragraphs[0].runs[0].font.size = Pt(9)
         cell.paragraphs[0].runs[0].font.bold = True
         cell.paragraphs[0].paragraph_format.space_after = Pt(0)
+        cell.paragraphs[0].paragraph_format.line_spacing = Pt(10)  # ხაზებს შორის მანძილი
 
     for item in CBC_TEMPLATE["cbc_analysis"]:
         row = table.add_row()
@@ -280,25 +281,29 @@ def create_cbc_document(form_data):
         for c in row.cells:
             for p in c.paragraphs:
                 p.paragraph_format.space_after = Pt(0)
+                p.paragraph_format.line_spacing = Pt(10)
                 for r in p.runs:
-                    r.font.size = Pt(11)
+                    r.font.size = Pt(9)
 
-    # ლეიკოციტარული ფორმულა სათაური - 13pt
+    # ლეიკოციტარული ფორმულა სათაური - 11pt
     p2 = doc.add_paragraph()
     p2.paragraph_format.space_after = Pt(2)
     p2.paragraph_format.space_before = Pt(4)
     p2_run = p2.add_run("ლეიკოციტარული ფორმულა")
     p2_run.bold = True
-    p2_run.font.size = Pt(13)
+    p2_run.font.size = Pt(11)
 
+    # ცხრილი 2 - 9pt
     lt = doc.add_table(rows=1, cols=3)
     lt.style = 'Table Grid'
     for i, h_txt in enumerate(['პარამეტრი', 'შედეგი', 'ნორმა']):
         cell = lt.rows[0].cells[i]
         cell.text = h_txt
         set_cell_shading(cell, 'E2F0D9')
-        cell.paragraphs[0].runs[0].font.size = Pt(11)
+        cell.paragraphs[0].runs[0].font.size = Pt(9)
         cell.paragraphs[0].runs[0].font.bold = True
+        cell.paragraphs[0].paragraph_format.space_after = Pt(0)
+        cell.paragraphs[0].paragraph_format.line_spacing = Pt(10)
 
     for idx, item in enumerate(CBC_TEMPLATE["leukocyte_formula"]):
         row = lt.add_row()
@@ -308,10 +313,11 @@ def create_cbc_document(form_data):
         for c in row.cells:
             for p in c.paragraphs:
                 p.paragraph_format.space_after = Pt(0)
+                p.paragraph_format.line_spacing = Pt(10)
                 for r in p.runs:
-                    r.font.size = Pt(11)
+                    r.font.size = Pt(9)
 
-    # მორფოლოგია - 12pt
+    # მორფოლოგია - 10pt
     morph = doc.add_paragraph()
     morph.paragraph_format.space_before = Pt(4)
     morph.paragraph_format.space_after = Pt(0)
@@ -320,43 +326,36 @@ def create_cbc_document(form_data):
     morph.add_run("ლეიკოც. მორფოლოგია: ").bold = True
     morph.add_run(form_data.get('leukocyte_morphology', ''))
     for r in morph.runs:
-        r.font.size = Pt(12)
+        r.font.size = Pt(10)
 
-    # ფუტერი - 12pt
+    # ფუტერი - 10pt
     foot = doc.add_paragraph()
     foot.paragraph_format.space_before = Pt(6)
     foot.add_run("გამოკვლევა შეასრულა: ").bold = True
     foot.add_run(form_data.get('doctor_name', '') + "    ")
     foot.add_run("ხელმოწერა: _________")
     for r in foot.runs:
-        r.font.size = Pt(12)
+        r.font.size = Pt(10)
 
     return doc
-
-
-@app.route('/cbc/doc', methods=['POST'])
-def cbc_doc_route():
-    fd = request.form.to_dict()
-    doc = create_cbc_document(fd)
-    fname = f"CBC_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
-    fpath = os.path.join(get_saved_docs_folder(), fname)
-    doc.save(fpath)
-    add_patient_record(fd.get('first_name'), fd.get('last_name'), fd.get('age'), 'CBC', fname, fd.get('test_date'))
-    return send_file(fpath, as_attachment=True)
 
 
 @app.route('/cbc/print', methods=['POST'])
 def cbc_print_route():
     fd = request.form.to_dict()
+    # 1. შენახვა
+    doc = create_cbc_document(fd)
+    fname = f"CBC_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
+    fpath = os.path.join(get_saved_docs_folder(), fname)
+    doc.save(fpath)
+    add_patient_record(fd.get('first_name'), fd.get('last_name'), fd.get('age'), 'CBC', fname, fd.get('test_date'))
+
+    # 2. ბეჭდვის HTML
     html = f'''<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CBC</title>
 <style>@page{{size:A4;margin:10mm}}body{{font-family:Arial,sans-serif;padding:10px;font-size:15px}}
 h1{{color:green;text-align:center;font-size:18px}}h2{{text-align:center;font-size:16px}}
-table{{width:100%;border-collapse:collapse;margin:10px 0}}
-th,td{{border:1px solid #ddd;padding:6px;text-align:left;font-size:13px}}
-th{{background:#D9E2F3}}.leuko th{{background:#E2F0D9}}</style></head><body>
-<h1>PREMIUM MEDI / პრემიუმ მედი</h1>
-<p style="text-align:center">ტელ: 577-03-97-70</p>
-<h2>BL6 - სისხლის საერთო ანალიზი CBC</h2>
+table{{width:100%;border-collapse:collapse;margin:10px 0}}th,td{{border:1px solid #ddd;padding:6px;text-align:left;font-size:13px}}th{{background:#D9E2F3}}.leuko th{{background:#E2F0D9}}</style></head><body>
+<h1>PREMIUM MEDI / პრემიუმ მედი</h1><p style="text-align:center">ტელ: 558-27-55-51</p><h2>BL6 - სისხლის საერთო ანალიზი CBC</h2>
 <p><b>პაციენტი:</b> {fd.get('first_name')} {fd.get('last_name')}, {fd.get('age')} წ. &nbsp;&nbsp; <b>თარიღი:</b> {fd.get('test_date')}</p>
 <table><tr><th>აბრევ.</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th><th>ერთ.</th></tr>'''
     for item in CBC_TEMPLATE["cbc_analysis"]:
@@ -371,451 +370,239 @@ th{{background:#D9E2F3}}.leuko th{{background:#E2F0D9}}</style></head><body>
     return Response(html, mimetype='text/html')
 
 
-# ========== URINE ==========
+# ========== URINE FUNCTIONS ==========
 @app.route('/urine')
-def urine_form():
-    return render_template('form_urinalysis.html', template=URINE_TEMPLATE)
+def urine_form(): return render_template('form_urinalysis.html', template=URINE_TEMPLATE)
 
 
 def create_urine_document(form_data):
     doc = Document()
-    for s in doc.sections:
-        s.top_margin = Cm(0.5)
-        s.bottom_margin = Cm(0.5)
-        s.left_margin = Cm(1.0)
-        s.right_margin = Cm(1.0)
+    for s in doc.sections: s.top_margin = Cm(0.5); s.bottom_margin = Cm(0.5); s.left_margin = Cm(
+        1.0); s.right_margin = Cm(1.0)
 
-    # ჰედერი - 16pt
-    h = doc.add_paragraph()
-    h.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    h = doc.add_paragraph();
+    h.alignment = WD_ALIGN_PARAGRAPH.CENTER;
     h.paragraph_format.space_after = Pt(0)
-    run = h.add_run("PREMIUM MEDI / პრემიუმ მედი")
-    run.font.size = Pt(16)
-    run.font.bold = True
+    run = h.add_run("PREMIUM MEDI / პრემიუმ მედი");
+    run.font.size = Pt(16);
+    run.font.bold = True;
     run.font.color.rgb = RGBColor(0, 100, 0)
 
-    # სუბტიტრი - 12pt
-    sub = doc.add_paragraph()
-    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    sub = doc.add_paragraph();
+    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER;
     sub.paragraph_format.space_after = Pt(2)
     sub.add_run(
         f"{URINE_TEMPLATE['header']['subtitle']} | ტელ: {', '.join(URINE_TEMPLATE['header']['phones'])}").font.size = Pt(
         12)
 
-    # სათაური - 14pt
-    t_p = doc.add_paragraph()
-    t_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    t_p = doc.add_paragraph();
+    t_p.alignment = WD_ALIGN_PARAGRAPH.CENTER;
     t_p.paragraph_format.space_after = Pt(4)
-    t = t_p.add_run(f"{URINE_TEMPLATE['test_info']['code']} - {URINE_TEMPLATE['test_info']['name']}")
-    t.font.size = Pt(14)
+    t = t_p.add_run(f"{URINE_TEMPLATE['test_info']['code']} - {URINE_TEMPLATE['test_info']['name']}");
+    t.font.size = Pt(14);
     t.font.bold = True
 
-    # პაციენტის ინფო - 13pt
-    info = doc.add_paragraph()
+    info = doc.add_paragraph();
     info.paragraph_format.space_after = Pt(4)
-    info.add_run("პაციენტი: ").bold = True
+    info.add_run("პაციენტი: ").bold = True;
     info.add_run(
-        f"{form_data.get('first_name', '')} {form_data.get('last_name', '')}, {form_data.get('age', '')} წ.   ")
-    info.add_run("თარიღი: ").bold = True
+        f"{form_data.get('first_name', '')} {form_data.get('last_name', '')}, {form_data.get('age', '')} წ.   ");
+    info.add_run("თარიღი: ").bold = True;
     info.add_run(form_data.get('test_date', ''))
-    for r in info.runs:
-        r.font.size = Pt(13)
+    for r in info.runs: r.font.size = Pt(13)
 
-    # ფიზიკო-ქიმიური - 13pt
-    p1 = doc.add_paragraph()
-    p1.paragraph_format.space_after = Pt(2)
-    p1_run = p1.add_run("ფიზიკო-ქიმიური თვისებები")
-    p1_run.bold = True
-    p1_run.font.size = Pt(13)
-
-    t1 = doc.add_table(rows=1, cols=5)
+    doc.add_paragraph().add_run("ფიზიკო-ქიმიური თვისებები").bold = True;
+    doc.paragraphs[-1].runs[0].font.size = Pt(13)
+    t1 = doc.add_table(rows=1, cols=5);
     t1.style = 'Table Grid'
     for i, h_txt in enumerate(['აბრევ.', 'პარამეტრი', 'შედეგი', 'ნორმა', 'ერთ.']):
-        cell = t1.rows[0].cells[i]
-        cell.text = h_txt
-        set_cell_shading(cell, 'FFF2CC')
-        cell.paragraphs[0].runs[0].font.size = Pt(11)
-        cell.paragraphs[0].runs[0].font.bold = True
-
+        cell = t1.rows[0].cells[i];
+        cell.text = h_txt;
+        set_cell_shading(cell, 'FFF2CC');
+        cell.paragraphs[0].runs[0].font.size = Pt(11);
+        cell.paragraphs[0].runs[0].font.bold = True;
+        cell.paragraphs[0].paragraph_format.space_after = Pt(0)
     for idx, item in enumerate(URINE_TEMPLATE["physico_chemical"]):
-        row = t1.add_row()
-        row.cells[0].text = item['abbr']
-        row.cells[1].text = item['parameter']
-        row.cells[2].text = form_data.get(f'phys_{idx}', '')
-        row.cells[3].text = item['norm']
+        row = t1.add_row();
+        row.cells[0].text = item['abbr'];
+        row.cells[1].text = item['parameter'];
+        row.cells[2].text = form_data.get(f'phys_{idx}', '');
+        row.cells[3].text = item['norm'];
         row.cells[4].text = item['unit']
         for c in row.cells:
-            for p in c.paragraphs:
-                p.paragraph_format.space_after = Pt(0)
-                for r in p.runs:
-                    r.font.size = Pt(11)
+            for p in c.paragraphs: p.paragraph_format.space_after = Pt(0);
+            for r in c.paragraphs[0].runs: r.font.size = Pt(11)
 
-    # მიკროსკოპია - 13pt
-    p2 = doc.add_paragraph()
-    p2.paragraph_format.space_after = Pt(2)
-    p2.paragraph_format.space_before = Pt(4)
-    p2_run = p2.add_run("მიკროსკოპია")
-    p2_run.bold = True
-    p2_run.font.size = Pt(13)
-
-    mt = doc.add_table(rows=1, cols=4)
+    doc.add_paragraph().add_run("მიკროსკოპია").bold = True;
+    doc.paragraphs[-1].runs[0].font.size = Pt(13)
+    mt = doc.add_table(rows=1, cols=4);
     mt.style = 'Table Grid'
     for i, h_txt in enumerate(['ეპითელიუმი', 'შედეგი', 'ცილინდრები', 'შედეგი']):
-        cell = mt.rows[0].cells[i]
-        cell.text = h_txt
-        set_cell_shading(cell, 'E2EFDA')
-        cell.paragraphs[0].runs[0].font.size = Pt(11)
-        cell.paragraphs[0].runs[0].font.bold = True
-
-    epi = URINE_TEMPLATE["microscopy"]["epithelium"]
-    cyl = URINE_TEMPLATE["microscopy"]["cylinders"]
+        cell = mt.rows[0].cells[i];
+        cell.text = h_txt;
+        set_cell_shading(cell, 'E2EFDA');
+        cell.paragraphs[0].runs[0].font.size = Pt(11);
+        cell.paragraphs[0].runs[0].font.bold = True;
+        cell.paragraphs[0].paragraph_format.space_after = Pt(0)
+    epi, cyl = URINE_TEMPLATE["microscopy"]["epithelium"], URINE_TEMPLATE["microscopy"]["cylinders"]
     for i in range(max(len(epi), len(cyl))):
         row = mt.add_row()
-        if i < len(epi):
-            row.cells[0].text = epi[i]['label']
-            row.cells[1].text = form_data.get(f"epi_{epi[i]['key']}", '')
-        if i < len(cyl):
-            row.cells[2].text = cyl[i]['label']
-            row.cells[3].text = form_data.get(f"cyl_{cyl[i]['key']}", '')
+        if i < len(epi): row.cells[0].text = epi[i]['label']; row.cells[1].text = form_data.get(f"epi_{epi[i]['key']}",
+                                                                                                '')
+        if i < len(cyl): row.cells[2].text = cyl[i]['label']; row.cells[3].text = form_data.get(f"cyl_{cyl[i]['key']}",
+                                                                                                '')
         for c in row.cells:
-            for p in c.paragraphs:
-                p.paragraph_format.space_after = Pt(0)
-                for r in p.runs:
-                    r.font.size = Pt(11)
+            for p in c.paragraphs: p.paragraph_format.space_after = Pt(0);
+            for r in c.paragraphs[0].runs: r.font.size = Pt(11)
 
-    # სხვა მონაცემები - 13pt
-    p3 = doc.add_paragraph()
-    p3.paragraph_format.space_after = Pt(2)
-    p3.paragraph_format.space_before = Pt(4)
-    p3_run = p3.add_run("სხვა მონაცემები")
-    p3_run.bold = True
-    p3_run.font.size = Pt(13)
-
-    ot = doc.add_table(rows=1, cols=4)
+    doc.add_paragraph().add_run("სხვა მონაცემები").bold = True;
+    doc.paragraphs[-1].runs[0].font.size = Pt(13)
+    ot = doc.add_table(rows=1, cols=4);
     ot.style = 'Table Grid'
     for i, h_txt in enumerate(['პარამეტრი', 'შედეგი', 'პარამეტრი', 'შედეგი']):
-        cell = ot.rows[0].cells[i]
-        cell.text = h_txt
-        set_cell_shading(cell, 'DDEBF7')
-        cell.paragraphs[0].runs[0].font.size = Pt(11)
-        cell.paragraphs[0].runs[0].font.bold = True
-
+        cell = ot.rows[0].cells[i];
+        cell.text = h_txt;
+        set_cell_shading(cell, 'DDEBF7');
+        cell.paragraphs[0].runs[0].font.size = Pt(11);
+        cell.paragraphs[0].runs[0].font.bold = True;
+        cell.paragraphs[0].paragraph_format.space_after = Pt(0)
     others = URINE_TEMPLATE["microscopy"]["others"]
     for i in range(0, len(others), 2):
-        row = ot.add_row()
-        row.cells[0].text = others[i]['parameter']
+        row = ot.add_row();
+        row.cells[0].text = others[i]['parameter'];
         row.cells[1].text = form_data.get(f"other_{others[i]['key']}", '')
-        if i + 1 < len(others):
-            row.cells[2].text = others[i + 1]['parameter']
-            row.cells[3].text = form_data.get(f"other_{others[i + 1]['key']}", '')
+        if i + 1 < len(others): row.cells[2].text = others[i + 1]['parameter']; row.cells[3].text = form_data.get(
+            f"other_{others[i + 1]['key']}", '')
         for c in row.cells:
-            for p in c.paragraphs:
-                p.paragraph_format.space_after = Pt(0)
-                for r in p.runs:
-                    r.font.size = Pt(11)
+            for p in c.paragraphs: p.paragraph_format.space_after = Pt(0);
+            for r in c.paragraphs[0].runs: r.font.size = Pt(11)
 
-    # ფუტერი - 12pt
-    foot = doc.add_paragraph()
+    foot = doc.add_paragraph();
     foot.paragraph_format.space_before = Pt(6)
     foot.add_run(
         f"აპარატურა: {URINE_TEMPLATE['footer']['equipment']}  შეასრულა: {form_data.get('doctor_name', '')}  ხელმოწერა: _________")
-    for r in foot.runs:
-        r.font.size = Pt(12)
-
+    for r in foot.runs: r.font.size = Pt(12)
     return doc
-
-
-@app.route('/urine/doc', methods=['POST'])
-def urine_doc_route():
-    fd = request.form.to_dict()
-    doc = create_urine_document(fd)
-    fname = f"Urine_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
-    fpath = os.path.join(get_saved_docs_folder(), fname)
-    doc.save(fpath)
-    add_patient_record(fd.get('first_name'), fd.get('last_name'), fd.get('age'), 'Urine', fname, fd.get('test_date'))
-    return send_file(fpath, as_attachment=True)
 
 
 @app.route('/urine/print', methods=['POST'])
 def urine_print_route():
     fd = request.form.to_dict()
+    # 1. შენახვა
+    doc = create_urine_document(fd)
+    fname = f"Urine_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
+    fpath = os.path.join(get_saved_docs_folder(), fname)
+    doc.save(fpath)
+    add_patient_record(fd.get('first_name'), fd.get('last_name'), fd.get('age'), 'Urine', fname, fd.get('test_date'))
+
+    # 2. ბეჭდვა
     ph = ', '.join(URINE_TEMPLATE['header']['phones'])
     html = f'''<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Urine</title>
 <style>@page{{size:A4;margin:10mm}}body{{font-family:Arial,sans-serif;padding:10px;font-size:15px}}
 h1{{color:green;text-align:center;font-size:18px}}h2{{text-align:center;font-size:16px}}
-table{{width:100%;border-collapse:collapse;margin:5px 0}}
-th,td{{border:1px solid #ddd;padding:4px;text-align:left;font-size:13px}}
-th{{background:#FFF2CC}}.micro th{{background:#E2EFDA}}.other th{{background:#DDEBF7}}</style></head><body>
-<h1>PREMIUM MEDI / პრემიუმ მედი</h1>
-<p style="text-align:center">{URINE_TEMPLATE['header']['subtitle']} | ტელ: {ph}</p>
+table{{width:100%;border-collapse:collapse;margin:5px 0}}th,td{{border:1px solid #ddd;padding:4px;text-align:left;font-size:13px}}th{{background:#FFF2CC}}.micro th{{background:#E2EFDA}}.other th{{background:#DDEBF7}}</style></head><body>
+<h1>PREMIUM MEDI / პრემიუმ მედი</h1><p style="text-align:center">{URINE_TEMPLATE['header']['subtitle']} | ტელ: {ph}</p>
 <h2>{URINE_TEMPLATE['test_info']['code']} - {URINE_TEMPLATE['test_info']['name']}</h2>
 <p><b>პაციენტი:</b> {fd.get('first_name')} {fd.get('last_name')}, {fd.get('age')} წ. &nbsp;&nbsp; <b>თარიღი:</b> {fd.get('test_date')}</p>
 <h3>თვისებები</h3><table><tr><th>აბრევ.</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th><th>ერთ.</th></tr>'''
     for idx, item in enumerate(URINE_TEMPLATE["physico_chemical"]):
         html += f"<tr><td>{item['abbr']}</td><td>{item['parameter']}</td><td><b>{fd.get(f'phys_{idx}', '')}</b></td><td>{item['norm']}</td><td>{item['unit']}</td></tr>"
     html += '</table><p><b>მიკროსკოპია</b></p><table class="micro"><tr><th>ეპითელიუმი</th><th>შედეგი</th><th>ცილინდრები</th><th>შედეგი</th></tr>'
-    epi = URINE_TEMPLATE["microscopy"]["epithelium"]
-    cyl = URINE_TEMPLATE["microscopy"]["cylinders"]
+    epi, cyl = URINE_TEMPLATE["microscopy"]["epithelium"], URINE_TEMPLATE["microscopy"]["cylinders"]
     for i in range(max(len(epi), len(cyl))):
-        el = epi[i]['label'] if i < len(epi) else ''
+        el = epi[i]['label'] if i < len(epi) else '';
         ev = fd.get(f"epi_{epi[i]['key']}", '') if i < len(epi) else ''
-        cl = cyl[i]['label'] if i < len(cyl) else ''
+        cl = cyl[i]['label'] if i < len(cyl) else '';
         cv = fd.get(f"cyl_{cyl[i]['key']}", '') if i < len(cyl) else ''
         html += f"<tr><td>{el}</td><td><b>{ev}</b></td><td>{cl}</td><td><b>{cv}</b></td></tr>"
-    html += f'</table><p><b>შეასრულა:</b> {fd.get("doctor_name", "")} &nbsp;&nbsp; ხელმოწერა: __________</p>'
-    html += '<script>window.onload=function(){setTimeout(function(){window.print()},500)}</script></body></html>'
+    html += f'</table><p><b>შეასრულა:</b> {fd.get("doctor_name", "")} &nbsp;&nbsp; ხელმოწერა: __________</p><script>window.onload=function(){{setTimeout(function(){{window.print()}},500)}}</script></body></html>'
     return Response(html, mimetype='text/html')
 
 
-# ========== CRP ==========
+# ========== CRP FUNCTIONS ==========
 @app.route('/crp')
-def crp_form():
-    return render_template('form_crp.html', template=CRP_TEMPLATE)
+def crp_form(): return render_template('form_crp.html', template=CRP_TEMPLATE)
 
 
 def create_crp_document(form_data):
     doc = Document()
-    for s in doc.sections:
-        s.top_margin = Cm(1.5)
-        s.bottom_margin = Cm(1.5)
-        s.left_margin = Cm(2.0)
-        s.right_margin = Cm(2.0)
+    for s in doc.sections: s.top_margin = Cm(1.5); s.bottom_margin = Cm(1.5); s.left_margin = Cm(
+        2.0); s.right_margin = Cm(2.0)
 
-    # ჰედერი - 20pt
-    h = doc.add_paragraph()
-    h.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    h = doc.add_paragraph();
+    h.alignment = WD_ALIGN_PARAGRAPH.CENTER;
     h.paragraph_format.space_after = Pt(6)
-    run = h.add_run("PREMIUM MEDI / პრემიუმ მედი")
-    run.font.size = Pt(20)
-    run.font.bold = True
+    run = h.add_run("PREMIUM MEDI / პრემიუმ მედი");
+    run.font.size = Pt(20);
+    run.font.bold = True;
     run.font.color.rgb = RGBColor(0, 100, 0)
 
-    # სუბტიტრი - 14pt
-    sub = doc.add_paragraph()
-    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    sub = doc.add_paragraph();
+    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER;
     sub.paragraph_format.space_after = Pt(12)
     sub.add_run(
         f"{CRP_TEMPLATE['clinic_info']['description']} | ტელ: {', '.join(CRP_TEMPLATE['clinic_info']['phones'])}").font.size = Pt(
         14)
 
-    # სათაური - 18pt
-    t_p = doc.add_paragraph()
-    t_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    t_p = doc.add_paragraph();
+    t_p.alignment = WD_ALIGN_PARAGRAPH.CENTER;
     t_p.paragraph_format.space_after = Pt(16)
-    t = t_p.add_run(CRP_TEMPLATE['test_details']['title_ge'])
-    t.font.size = Pt(18)
+    t = t_p.add_run(CRP_TEMPLATE['test_details']['title_ge']);
+    t.font.size = Pt(18);
     t.font.bold = True
 
-    # პაციენტის ინფო - 15pt
-    info = doc.add_paragraph()
+    info = doc.add_paragraph();
     info.paragraph_format.space_after = Pt(16)
-    info.add_run("პაციენტი: ").bold = True
+    info.add_run("პაციენტი: ").bold = True;
     info.add_run(
-        f"{form_data.get('first_name', '')} {form_data.get('last_name', '')}, {form_data.get('age', '')} წ.          ")
-    info.add_run("თარიღი: ").bold = True
+        f"{form_data.get('first_name', '')} {form_data.get('last_name', '')}, {form_data.get('age', '')} წ.          ");
+    info.add_run("თარიღი: ").bold = True;
     info.add_run(form_data.get('test_date', ''))
-    for r in info.runs:
-        r.font.size = Pt(15)
+    for r in info.runs: r.font.size = Pt(15)
 
-    # ცხრილი - 14pt
-    table = doc.add_table(rows=1, cols=5)
+    table = doc.add_table(rows=1, cols=5);
     table.style = 'Table Grid'
     for i, h_txt in enumerate(['კოდი', 'პარამეტრი', 'შედეგი', 'ნორმა', 'ერთეული']):
-        cell = table.rows[0].cells[i]
-        cell.text = h_txt
-        set_cell_shading(cell, 'E8DAEF')
-        cell.paragraphs[0].runs[0].font.size = Pt(14)
+        cell = table.rows[0].cells[i];
+        cell.text = h_txt;
+        set_cell_shading(cell, 'E8DAEF');
+        cell.paragraphs[0].runs[0].font.size = Pt(14);
         cell.paragraphs[0].runs[0].font.bold = True
-
     for item in CRP_TEMPLATE["test_results"]:
-        row = table.add_row()
-        row.cells[0].text = item['code']
-        row.cells[1].text = item['parameter']
-        row.cells[2].text = form_data.get(f"res_{item['code']}", '')
-        row.cells[3].text = item['reference_range']
+        row = table.add_row();
+        row.cells[0].text = item['code'];
+        row.cells[1].text = item['parameter'];
+        row.cells[2].text = form_data.get(f"res_{item['code']}", '');
+        row.cells[3].text = item['reference_range'];
         row.cells[4].text = item['unit']
         for c in row.cells:
-            for r in c.paragraphs[0].runs:
-                r.font.size = Pt(14)
+            for r in c.paragraphs[0].runs: r.font.size = Pt(14)
 
-    # ფუტერი - 14pt
-    foot = doc.add_paragraph()
+    foot = doc.add_paragraph();
     foot.paragraph_format.space_before = Pt(24)
     foot.add_run(f"გამოკვლევა შეასრულა: {form_data.get('doctor_name', '')}          ხელმოწერა: _______________")
-    for r in foot.runs:
-        r.font.size = Pt(14)
-
+    for r in foot.runs: r.font.size = Pt(14)
     return doc
-
-
-@app.route('/crp/doc', methods=['POST'])
-def crp_doc_route():
-    fd = request.form.to_dict()
-    doc = create_crp_document(fd)
-    fname = f"CRP_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
-    fpath = os.path.join(get_saved_docs_folder(), fname)
-    doc.save(fpath)
-    add_patient_record(fd.get('first_name'), fd.get('last_name'), fd.get('age'), 'CRP', fname, fd.get('test_date'))
-    return send_file(fpath, as_attachment=True)
-
-# ========== TROPONIN ==========
-@app.route('/troponin')
-def troponin_form():
-    return render_template('form_troponin.html', template=TROPONIN_TEMPLATE)
-
-
-def create_troponin_document(form_data):
-    doc = Document()
-    for s in doc.sections:
-        s.top_margin = Cm(1.5)
-        s.bottom_margin = Cm(1.5)
-        s.left_margin = Cm(2.0)
-        s.right_margin = Cm(2.0)
-
-    # ჰედერი – დიდი, როგორც CRP‑ზე ან ოდნავ დიდი
-    header = doc.add_paragraph()
-    header.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    header.paragraph_format.space_after = Pt(6)
-    r1 = header.add_run("PREMIUM MEDI / პრემიუმ მედი")
-    r1.font.size = Pt(20)
-    r1.font.bold = True
-    r1.font.color.rgb = RGBColor(0, 100, 0)
-
-    # ქვესათაური
-    sub = doc.add_paragraph()
-    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sub.paragraph_format.space_after = Pt(10)
-    subr = sub.add_run(TROPONIN_TEMPLATE['clinic_info']['clinic_description'])
-    subr.font.size = Pt(14)
-
-    # სათაური
-    title = doc.add_paragraph()
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    title.paragraph_format.space_after = Pt(14)
-    tr = title.add_run(TROPONIN_TEMPLATE['test_info']['title'])
-    tr.font.size = Pt(18)
-    tr.font.bold = True
-
-    # პაციენტი
-    info = doc.add_paragraph()
-    info.paragraph_format.space_after = Pt(14)
-    info.add_run("პაციენტი: ").bold = True
-    info.add_run(f"{form_data.get('first_name','')} {form_data.get('last_name','')}, {form_data.get('age','')} წ.    ")
-    info.add_run("თარიღი: ").bold = True
-    info.add_run(form_data.get('test_date',''))
-    for r in info.runs:
-        r.font.size = Pt(15)
-
-    # ერთ რიგიანი ცხრილი
-    table = doc.add_table(rows=1, cols=4)
-    table.style = 'Table Grid'
-    headers = ['კოდი', 'პარამეტრი', 'შედეგი', 'ნორმა']
-    for i, htxt in enumerate(headers):
-        cell = table.rows[0].cells[i]
-        cell.text = htxt
-        set_cell_shading(cell, 'FADBD8')  # მოყვითალო‑ვარდისფერი
-        cell.paragraphs[0].runs[0].font.size = Pt(14)
-        cell.paragraphs[0].runs[0].font.bold = True
-
-    row = table.add_row()
-    item = TROPONIN_TEMPLATE['test_info']['results_table'][0]
-    row.cells[0].text = item['code']
-    row.cells[1].text = item['parameter']
-    row.cells[2].text = form_data.get('trop_result', '')
-    row.cells[3].text = item['reference_range']
-    for c in row.cells:
-        for p in c.paragraphs:
-            for r in p.runs:
-                r.font.size = Pt(14)
-
-    # აპარატურა + ექიმი
-    doc.add_paragraph()
-    foot1 = doc.add_paragraph()
-    foot1.paragraph_format.space_before = Pt(18)
-    fr1 = foot1.add_run("აპარატურა: ")
-    fr1.bold = True
-    fr1.font.size = Pt(14)
-    fr2 = foot1.add_run(TROPONIN_TEMPLATE['footer_note']['equipment'])
-    fr2.font.size = Pt(14)
-
-    foot2 = doc.add_paragraph()
-    foot2.paragraph_format.space_before = Pt(10)
-    f21 = foot2.add_run("გამოკვლევა შეასრულა: ")
-    f21.bold = True
-    f21.font.size = Pt(14)
-    f22 = foot2.add_run(form_data.get('doctor_name','') + "    ")
-    f22.font.size = Pt(14)
-    f23 = foot2.add_run("ხელმოწერა: _________________________")
-    f23.font.size = Pt(14)
-
-    return doc
-
-
-@app.route('/troponin/doc', methods=['POST'])
-def troponin_doc_route():
-    fd = request.form.to_dict()
-    doc = create_troponin_document(fd)
-    fname = f"Troponin_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
-    fpath = os.path.join(get_saved_docs_folder(), fname)
-    doc.save(fpath)
-
-    add_patient_record(
-        first_name=fd.get('first_name'),
-        last_name=fd.get('last_name'),
-        age=fd.get('age'),
-        test_type='Troponin',
-        filename=fname,
-        test_date=fd.get('test_date')
-    )
-
-    return send_file(fpath, as_attachment=True)
-
-
-@app.route('/troponin/print', methods=['POST'])
-def troponin_print_route():
-    fd = request.form.to_dict()
-    html = f'''<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Troponin</title>
-<style>
-@page{{size:A4;margin:20mm}}
-body{{font-family:Arial,sans-serif;padding:20px;font-size:16px}}
-h1{{color:green;text-align:center;font-size:22px;margin:8px 0}}
-h2{{text-align:center;font-size:20px;margin:10px 0;color:#8e44ad}}
-p{{margin:8px 0;font-size:16px}}
-table{{width:100%;border-collapse:collapse;margin:15px 0}}
-th,td{{border:1px solid #ddd;padding:10px;text-align:left;font-size:16px}}
-th{{background:#FADBD8;font-weight:bold}}
-</style></head><body>
-<h1>PREMIUM MEDI / პრემიუმ მედი</h1>
-<p style="text-align:center">{TROPONIN_TEMPLATE['clinic_info']['clinic_description']} | ტელ: 577-03-97-70</p>
-<h2>{TROPONIN_TEMPLATE['test_info']['title']}</h2>
-<p><b>პაციენტი:</b> {fd.get('first_name','')} {fd.get('last_name','')}, {fd.get('age','')} წ. &nbsp;&nbsp;&nbsp; <b>თარიღი:</b> {fd.get('test_date','')}</p>
-<table>
-<tr><th>კოდი</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th></tr>
-<tr>
-<td><b>{TROPONIN_TEMPLATE['test_info']['results_table'][0]['code']}</b></td>
-<td>{TROPONIN_TEMPLATE['test_info']['results_table'][0]['parameter']}</td>
-<td><b>{fd.get('trop_result','')}</b></td>
-<td>{TROPONIN_TEMPLATE['test_info']['results_table'][0]['reference_range']}</td>
-</tr>
-</table>
-<p><b>აპარატურა:</b> {TROPONIN_TEMPLATE['footer_note']['equipment']}</p>
-<p><b>შეასრულა:</b> {fd.get('doctor_name','')} &nbsp;&nbsp;&nbsp; <b>ხელმოწერა:</b> _________________________</p>
-<script>window.onload=function(){{setTimeout(function(){{window.print()}},500)}}</script>
-</body></html>'''
-    return Response(html, mimetype='text/html')
 
 
 @app.route('/crp/print', methods=['POST'])
 def crp_print_route():
     fd = request.form.to_dict()
+    # 1. შენახვა
+    doc = create_crp_document(fd)
+    fname = f"CRP_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
+    fpath = os.path.join(get_saved_docs_folder(), fname)
+    doc.save(fpath)
+    add_patient_record(fd.get('first_name'), fd.get('last_name'), fd.get('age'), 'CRP', fname, fd.get('test_date'))
+
+    # 2. ბეჭდვა
     ph = ', '.join(CRP_TEMPLATE['clinic_info']['phones'])
     html = f'''<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CRP</title>
 <style>@page{{size:A4;margin:20mm}}body{{font-family:Arial,sans-serif;padding:20px}}
 h1{{color:green;text-align:center;font-size:22px}}h2{{text-align:center;font-size:20px;color:#8e44ad}}
 p{{margin:10px 0;font-size:16px}}table{{width:100%;border-collapse:collapse;margin:20px 0}}
 th,td{{border:1px solid #ddd;padding:12px;text-align:left;font-size:16px}}th{{background:#E8DAEF}}</style></head><body>
-<h1>PREMIUM MEDI / პრემიუმ მედი</h1>
-<p style="text-align:center">{CRP_TEMPLATE['clinic_info']['description']} | ტელ: {ph}</p>
+<h1>PREMIUM MEDI / პრემიუმ მედი</h1><p style="text-align:center">{CRP_TEMPLATE['clinic_info']['description']} | ტელ: {ph}</p>
 <h2>{CRP_TEMPLATE['test_details']['title_ge']}</h2>
 <p><b>პაციენტი:</b> {fd.get('first_name')} {fd.get('last_name')}, {fd.get('age')} წ. &nbsp;&nbsp;&nbsp; <b>თარიღი:</b> {fd.get('test_date')}</p>
 <table><tr><th>კოდი</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th><th>ერთეული</th></tr>'''
@@ -827,7 +614,109 @@ th,td{{border:1px solid #ddd;padding:12px;text-align:left;font-size:16px}}th{{ba
     return Response(html, mimetype='text/html')
 
 
-# ========== გაშვება ==========
+# ========== TROPONIN FUNCTIONS ==========
+@app.route('/trop')
+def trop_form(): return render_template('form_troponin.html', template=TROPONIN_TEMPLATE)
+
+
+def create_troponin_document(form_data):
+    doc = Document()
+    for s in doc.sections: s.top_margin = Cm(1.5); s.bottom_margin = Cm(1.5); s.left_margin = Cm(
+        2.0); s.right_margin = Cm(2.0)
+
+    h = doc.add_paragraph();
+    h.alignment = WD_ALIGN_PARAGRAPH.CENTER;
+    h.paragraph_format.space_after = Pt(6)
+    r = h.add_run("PREMIUM MEDI / პრემიუმ მედი");
+    r.font.size = Pt(20);
+    r.font.bold = True;
+    r.font.color.rgb = RGBColor(0, 100, 0)
+
+    sub = doc.add_paragraph();
+    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER;
+    sub.paragraph_format.space_after = Pt(12)
+    sub.add_run(
+        f"{TROPONIN_TEMPLATE['document_info']['clinic_description']} | {TROPONIN_TEMPLATE['document_info']['contact']}").font.size = Pt(
+        14)
+
+    t_p = doc.add_paragraph();
+    t_p.alignment = WD_ALIGN_PARAGRAPH.CENTER;
+    t_p.paragraph_format.space_after = Pt(16)
+    t = t_p.add_run(TROPONIN_TEMPLATE['test_info']['title']);
+    t.font.size = Pt(18);
+    t.font.bold = True
+
+    info = doc.add_paragraph();
+    info.paragraph_format.space_after = Pt(16)
+    info.add_run("პაციენტი: ").bold = True;
+    info.add_run(
+        f"{form_data.get('first_name', '')} {form_data.get('last_name', '')}, {form_data.get('age', '')} წ.          ");
+    info.add_run("თარიღი: ").bold = True;
+    info.add_run(form_data.get('test_date', ''))
+    for r in info.runs: r.font.size = Pt(15)
+
+    table = doc.add_table(rows=1, cols=4);
+    table.style = 'Table Grid'
+    for i, h_txt in enumerate(['კოდი', 'პარამეტრი', 'შედეგი', 'ნორმა']):
+        cell = table.rows[0].cells[i];
+        cell.text = h_txt;
+        set_cell_shading(cell, 'FDEBD0');
+        cell.paragraphs[0].runs[0].font.size = Pt(14);
+        cell.paragraphs[0].runs[0].font.bold = True
+    for item in TROPONIN_TEMPLATE["test_info"]["results_table"]:
+        row = table.add_row();
+        row.cells[0].text = item['code'];
+        row.cells[1].text = item['parameter'];
+        row.cells[2].text = form_data.get("result_value", '');
+        row.cells[3].text = item['reference_range']
+        for c in row.cells:
+            for r in c.paragraphs[0].runs: r.font.size = Pt(14)
+
+    doc.add_paragraph()
+    foot1 = doc.add_paragraph();
+    foot1.paragraph_format.space_after = Pt(8)
+    foot1.add_run("აპარატურა: ").bold = True;
+    foot1.add_run(TROPONIN_TEMPLATE["footer_note"]["equipment"])
+    for r in foot1.runs: r.font.size = Pt(14)
+    foot2 = doc.add_paragraph();
+    foot2.paragraph_format.space_before = Pt(8)
+    foot2.add_run("გამოკვლევა შეასრულა: ").bold = True;
+    foot2.add_run(form_data.get('doctor_name', '') + "          ");
+    foot2.add_run("ხელმოწერა: _________________________")
+    for r in foot2.runs: r.font.size = Pt(14)
+    return doc
+
+
+@app.route('/trop/print', methods=['POST'])
+def trop_print_route():
+    fd = request.form.to_dict()
+    # 1. შენახვა
+    doc = create_troponin_document(fd)
+    fname = f"Trop_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
+    fpath = os.path.join(get_saved_docs_folder(), fname)
+    doc.save(fpath)
+    add_patient_record(fd.get('first_name'), fd.get('last_name'), fd.get('age'), 'Troponin', fname, fd.get('test_date'))
+
+    # 2. ბეჭდვა
+    html = f'''<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Troponin</title>
+<style>@page{{size:A4;margin:20mm}}body{{font-family:Arial,sans-serif;padding:20px}}
+h1{{color:green;text-align:center;font-size:22px}}h2{{text-align:center;font-size:20px;color:#8e44ad}}
+p{{margin:10px 0;font-size:16px}}table{{width:100%;border-collapse:collapse;margin:20px 0}}
+th,td{{border:1px solid #ddd;padding:12px;text-align:left;font-size:16px}}th{{background:#FDEBD0}}</style></head><body>
+<h1>PREMIUM MEDI / პრემიუმ მედი</h1>
+<p style="text-align:center">{TROPONIN_TEMPLATE['document_info']['clinic_description']} | {TROPONIN_TEMPLATE['document_info']['contact']}</p>
+<h2>{TROPONIN_TEMPLATE['test_info']['title']}</h2>
+<p><b>პაციენტი:</b> {fd.get('first_name', '')} {fd.get('last_name', '')}, {fd.get('age', '')} წ. &nbsp;&nbsp;&nbsp; <b>თარიღი:</b> {fd.get('test_date', '')}</p>
+<table><tr><th>კოდი</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th></tr>'''
+    for item in TROPONIN_TEMPLATE["test_info"]["results_table"]:
+        html += f"<tr><td>{item['code']}</td><td>{item['parameter']}</td><td><b>{fd.get('result_value', '')}</b></td><td>{item['reference_range']}</td></tr>"
+    html += f'''</table><p><b>აპარატურა:</b> {TROPONIN_TEMPLATE["footer_note"]["equipment"]}</p>
+<p><b>შეასრულა:</b> {fd.get('doctor_name', '')} &nbsp;&nbsp;&nbsp; <b>ხელმოწერა:</b> _________________________</p>
+<script>window.onload=function(){{setTimeout(function(){{window.print()}},500)}}</script></body></html>'''
+    return Response(html, mimetype='text/html')
+
+
+# ========== STARTUP ==========
 if __name__ == '__main__':
     threading.Timer(1.5, lambda: webbrowser.open('http://127.0.0.1:5000')).start()
     app.run(host='127.0.0.1', port=5000, debug=False, use_reloader=False)

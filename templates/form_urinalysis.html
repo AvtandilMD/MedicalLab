@@ -31,7 +31,6 @@
         .buttons{text-align:center;margin-top:25px;padding-top:25px;border-top:2px dashed #bdc3c7}
         .btn{padding:15px 40px;font-size:16px;font-weight:bold;border-radius:50px;border:none;cursor:pointer;margin:8px;transition:all .3s;color:#fff}
         .btn-print{background:linear-gradient(135deg,#3498db,#2980b9)}
-        .btn-save{background:linear-gradient(135deg,#27ae60,#2ecc71)}
         .btn:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
         .required::after{content:' *';color:#e74c3c}
         .ref{font-size:10px;color:#7f8c8d}
@@ -46,7 +45,7 @@
     <div class="header">
         <div class="logo">✚</div>
         <div class="clinic-name">PREMIUM MEDI / პრემიუმ მედი</div>
-        <div>საოჯახო მედიცინის ცენტრი | ტელ: 577-03-97-70</div>
+        <div>საოჯახო მედიცინის ცენტრი | ტელ: 558-27-55-51, 577-03-97-70</div>
     </div>
     <form id="mainForm" method="POST">
         <div class="section">
@@ -112,8 +111,7 @@
             </div>
         </div>
         <div class="buttons">
-            <button type="button" class="btn btn-print" onclick="printDoc()">🖨️ ბეჭდვა</button>
-            <button type="button" class="btn btn-save" onclick="saveDoc()">💾 შენახვა (.DOCX)</button>
+            <button type="button" class="btn btn-print" onclick="printDoc()">🖨️ ბეჭდვა და შენახვა</button>
         </div>
     </form>
 </div>
@@ -126,8 +124,13 @@ function validate(){
     if(!fn||!ln||!dt){alert('შეავსეთ სავალდებულო ველები');return false;}
     return true;
 }
-function printDoc(){if(!validate())return;var f=document.getElementById('mainForm');f.action='/urine/print';f.target='_blank';f.submit();}
-function saveDoc(){if(!validate())return;var f=document.getElementById('mainForm');f.action='/urine/doc';f.target='_self';f.submit();}
+function printDoc(){
+    if(!validate())return;
+    var f=document.getElementById('mainForm');
+    f.action='/urine/print';
+    f.target='_blank';
+    f.submit();
+}
 </script>
 </body>
 </html>

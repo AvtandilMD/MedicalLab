@@ -482,34 +482,62 @@ def create_urine_document(form_data):
 @app.route('/urine/print', methods=['POST'])
 def urine_print_route():
     fd = request.form.to_dict()
-    # 1. შენახვა
-    doc = create_urine_document(fd)
-    fname = f"Urine_{fd.get('last_name')}_{datetime.now().strftime('%H%M%S')}.docx"
-    fpath = os.path.join(get_saved_docs_folder(), fname)
-    doc.save(fpath)
-    add_patient_record(fd.get('first_name'), fd.get('last_name'), fd.get('age'), 'Urine', fname, fd.get('test_date'))
-
-    # 2. ბეჭდვა
     ph = ', '.join(URINE_TEMPLATE['header']['phones'])
+
+    # HTML-ის დასაწყისი
     html = f'''<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Urine</title>
-<style>@page{{size:A4;margin:10mm}}body{{font-family:Arial,sans-serif;padding:10px;font-size:15px}}
-h1{{color:green;text-align:center;font-size:18px}}h2{{text-align:center;font-size:16px}}
-table{{width:100%;border-collapse:collapse;margin:5px 0}}th,td{{border:1px solid #ddd;padding:4px;text-align:left;font-size:13px}}th{{background:#FFF2CC}}.micro th{{background:#E2EFDA}}.other th{{background:#DDEBF7}}</style></head><body>
+<style>@page{{size:A4;margin:10mm}}body{{font-family:Arial,sans-serif;padding:10px;font-size:13px}}
+h1{{color:green;text-align:center;font-size:16px}}h2{{text-align:center;font-size:14px}}
+table{{width:100%;border-collapse:collapse;margin:5px 0}}
+th,td{{border:1px solid #ddd;padding:4px;text-align:left;font-size:11px}}
+th{{background:#FFF2CC}} .micro th{{background:#E2EFDA}} .other th{{background:#DDEBF7}}
+h3{{font-size:12px;margin:10px 0 5px 0}}</style></head><body>
 <h1>PREMIUM MEDI / პრემიუმ მედი</h1><p style="text-align:center">{URINE_TEMPLATE['header']['subtitle']} | ტელ: {ph}</p>
 <h2>{URINE_TEMPLATE['test_info']['code']} - {URINE_TEMPLATE['test_info']['name']}</h2>
 <p><b>პაციენტი:</b> {fd.get('first_name')} {fd.get('last_name')}, {fd.get('age')} წ. &nbsp;&nbsp; <b>თარიღი:</b> {fd.get('test_date')}</p>
-<h3>თვისებები</h3><table><tr><th>აბრევ.</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th><th>ერთ.</th></tr>'''
+
+<h3>ფიზიკო-ქიმიური თვისებები</h3>
+<table><tr><th>აბრევ.</th><th>პარამეტრი</th><th>შედეგი</th><th>ნორმა</th><th>ერთ.</th></tr>'''
+
+    # 1. ფიზიკო-ქიმიური
     for idx, item in enumerate(URINE_TEMPLATE["physico_chemical"]):
         html += f"<tr><td>{item['abbr']}</td><td>{item['parameter']}</td><td><b>{fd.get(f'phys_{idx}', '')}</b></td><td>{item['norm']}</td><td>{item['unit']}</td></tr>"
-    html += '</table><p><b>მიკროსკოპია</b></p><table class="micro"><tr><th>ეპითელიუმი</th><th>შედეგი</th><th>ცილინდრები</th><th>შედეგი</th></tr>'
-    epi, cyl = URINE_TEMPLATE["microscopy"]["epithelium"], URINE_TEMPLATE["microscopy"]["cylinders"]
+    html += '</table>'
+
+    # 2. მიკროსკოპია
+    html += '<h3>მიკროსკოპია</h3><table class="micro"><tr><th>ეპითელიუმი</th><th>შედეგი</th><th>ცილინდრები</th><th>შედეგი</th></tr>'
+    epi = URINE_TEMPLATE["microscopy"]["epithelium"]
+    cyl = URINE_TEMPLATE["microscopy"]["cylinders"]
     for i in range(max(len(epi), len(cyl))):
-        el = epi[i]['label'] if i < len(epi) else '';
+        el = epi[i]['label'] if i < len(epi) else ''
         ev = fd.get(f"epi_{epi[i]['key']}", '') if i < len(epi) else ''
-        cl = cyl[i]['label'] if i < len(cyl) else '';
+        cl = cyl[i]['label'] if i < len(cyl) else ''
         cv = fd.get(f"cyl_{cyl[i]['key']}", '') if i < len(cyl) else ''
         html += f"<tr><td>{el}</td><td><b>{ev}</b></td><td>{cl}</td><td><b>{cv}</b></td></tr>"
-    html += f'</table><p><b>შეასრულა:</b> {fd.get("doctor_name", "")} &nbsp;&nbsp; ხელმოწერა: __________</p><script>window.onload=function(){{setTimeout(function(){{window.print()}},500)}}</script></body></html>'
+    html += '</table>'
+
+    # 3. სხვა მონაცემები (სწორედ ეს ნაწილი გაკლდათ)
+    html += '<h3>სხვა მონაცემები</h3><table class="other"><tr><th>პარამეტრი</th><th>შედეგი</th><th>პარამეტრი</th><th>შედეგი</th></tr>'
+    others = URINE_TEMPLATE["microscopy"]["others"]
+    for i in range(0, len(others), 2):
+        p1 = others[i]['parameter']
+        v1 = fd.get(f"other_{others[i]['key']}", '')
+
+        p2 = ""
+        v2 = ""
+        if i + 1 < len(others):
+            p2 = others[i + 1]['parameter']
+            v2 = fd.get(f"other_{others[i + 1]['key']}", '')
+
+        html += f"<tr><td>{p1}</td><td><b>{v1}</b></td><td>{p2}</td><td><b>{v2}</b></td></tr>"
+    html += '</table>'
+
+    # ფუტერი
+    html += f'''<br><p><b>აპარატურა:</b> {URINE_TEMPLATE["footer"]["equipment"]} &nbsp;&nbsp; 
+    <b>შეასრულა:</b> {fd.get("doctor_name", "")} &nbsp;&nbsp; 
+    <b>ხელმოწერა:</b> _____________</p>
+    <script>window.onload=function(){{setTimeout(function(){{window.print()}},500)}}</script></body></html>'''
+
     return Response(html, mimetype='text/html')
 
 

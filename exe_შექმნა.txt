@@ -1,0 +1,1 @@
+pyinstaller --onefile --noconsole --name PremiumLab --icon icon.ico --add-data "templates;templates" --hidden-import=lxml.etree --hidden-import=lxml._elementpath app.py

@@ -18,13 +18,11 @@ from docx.oxml import OxmlElement
 
 # ================== PATHS ==================
 def get_base_path():
-    # EXE და python ორივეზე სწორი მდებარეობა
     if getattr(sys, "frozen", False):
         return os.path.dirname(sys.executable)
     return os.path.dirname(os.path.abspath(__file__))
 
 def get_template_folder():
-    # PyInstaller onefile-ში templates მოდის sys._MEIPASS-დან
     if getattr(sys, "frozen", False):
         return os.path.join(sys._MEIPASS, "templates")
     return os.path.join(get_base_path(), "templates")
@@ -47,7 +45,7 @@ def get_settings_path():
 
 
 app = Flask(__name__, template_folder=get_template_folder())
-app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2MB signature upload limit
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2MB
 
 
 # ================== PATIENT DB ==================
@@ -67,8 +65,9 @@ def save_database(db):
 
 def add_patient_record(first_name, last_name, age, test_type, filename, test_date):
     db = load_database()
+    new_id = (db["patients"][-1]["id"] + 1) if db["patients"] else 1
     rec = {
-        "id": (db["patients"][-1]["id"] + 1) if db["patients"] else 1,
+        "id": new_id,
         "first_name": first_name or "",
         "last_name": last_name or "",
         "age": age or "",
@@ -97,7 +96,7 @@ def search_patients(q: str):
 
 
 # ================== SIGNATURE (PERSISTENT) ==================
-ALLOWED_SIGNATURE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
+ALLOWED_SIGNATURE_EXT = {".png", ".jpg", ".jpeg"}
 
 def load_settings():
     path = get_settings_path()
@@ -125,7 +124,6 @@ def signature_exists():
     return get_signature_file_path() is not None
 
 def signature_img_url():
-    # cache bust
     return f"/signature?v={int(datetime.now().timestamp())}"
 
 def signature_html_img(height_px=55):
@@ -134,10 +132,6 @@ def signature_html_img(height_px=55):
     return f'<img src="{signature_img_url()}" style="height:{height_px}px;object-fit:contain;">'
 
 def add_signature_line_to_docx(doc: Document, width_cm: float = 3.2):
-    """
-    აბსოლუტურად ყველა DOCX-ის ბოლოს დაამატებს:
-      "ხელმოწერა:" + სურათი (თუ არსებობს) ან ხაზები
-    """
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(4)
     p.paragraph_format.space_after = Pt(0)
@@ -163,7 +157,6 @@ def set_cell_shading(cell, color_hex):
 
 def set_cell_text(cell, text, font_pt=10, bold=False):
     cell.text = text
-    # cell.text ქმნის 1 paragraph/1 run-ს
     try:
         run = cell.paragraphs[0].runs[0]
         run.font.size = Pt(font_pt)
@@ -174,7 +167,7 @@ def set_cell_text(cell, text, font_pt=10, bold=False):
         pass
 
 
-# ================== TEMPLATES DATA ==================
+# ================== DATA TEMPLATES ==================
 CBC_TEMPLATE = {
     "cbc_analysis": [
         {"abbr": "WBC", "parameter": "ლეიკოციტი", "reference_range": "მ. 5.0-10.0; ქ. 5.0-10.0", "unit": "10^9/L"},
@@ -253,7 +246,7 @@ CRP_TEMPLATE = {
 }
 
 TROPONIN_TEMPLATE = {
-    "document_info": {"clinic_description": "საოჯახო მედიცინის ცენტრი", "contact": "ტელ: 577-03-97-70"},
+    "document_info": {"clinic_description": "საოჯახო მედიცინის ცენტრი", "contact": "ტელ: 558-27-55-51, 577-03-97-70"},
     "test_info": {
         "title": "ტროპონინის ტესტი (BL.7.8)",
         "results_table": [{"code": "BL.7.8", "parameter": "ტროპონინი", "reference_range": "უარყოფითი"}],
@@ -264,9 +257,6 @@ TROPONIN_TEMPLATE = {
 
 # ================== DOCX GENERATORS ==================
 def create_cbc_document(fd: dict) -> Document:
-    """
-    CBC DOCX - კომპაქტური 10pt შრიფტი, რომ ერთ გვერდზე დაეტიოს.
-    """
     doc = Document()
     for s in doc.sections:
         s.top_margin = Cm(0.8)
@@ -284,7 +274,7 @@ def create_cbc_document(fd: dict) -> Document:
 
     sub = doc.add_paragraph()
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sub_run = sub.add_run("საოჯახო მედიცინის ცენტრი | ტელ: 577-03-97-70")
+    sub_run = sub.add_run("საოჯახო მედიცინის ცენტრი | ტელ: 558-27-55-51")
     sub_run.font.size = Pt(9)
     sub.paragraph_format.space_after = Pt(4)
 
@@ -674,7 +664,7 @@ def signature_upload():
     filename = secure_filename(f.filename)
     ext = os.path.splitext(filename)[1].lower()
     if ext not in ALLOWED_SIGNATURE_EXT:
-        return jsonify({"success": False, "message": "დაშვებულია მხოლოდ: png/jpg/jpeg/webp"}), 400
+        return jsonify({"success": False, "message": "დაშვებულია მხოლოდ PNG/JPG/JPEG"}), 400
 
     save_name = f"doctor_signature{ext}"
     save_path = os.path.join(get_data_folder(), save_name)
@@ -707,28 +697,29 @@ def _save_docx_and_register(doc: Document, fd: dict, test_type: str, prefix: str
     )
     return filename
 
+
 @app.route("/cbc/print", methods=["POST"])
 def cbc_print():
     fd = request.form.to_dict()
     doc = create_cbc_document(fd)
     _save_docx_and_register(doc, fd, "CBC", "CBC")
 
-    # print HTML (კომპაქტური)
+    # HTML print (+2 font size for ALL elements)
     html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CBC</title>
 <style>
 @page{{size:A4;margin:10mm}}
-body{{font-family:Arial,sans-serif;padding:10px;font-size:11px}}
-h1{{color:green;text-align:center;font-size:14px;margin:4px 0}}
-h2{{text-align:center;font-size:12px;margin:4px 0}}
-h3{{font-size:10px;margin:8px 0 4px 0}}
+body{{font-family:Arial,sans-serif;padding:10px;font-size:15px}}
+h1{{color:green;text-align:center;font-size:18px;margin:4px 0}}
+h2{{text-align:center;font-size:16px;margin:4px 0}}
+h3{{font-size:14px;margin:8px 0 4px 0}}
 p{{margin:3px 0}}
 table{{width:100%;border-collapse:collapse;margin:5px 0}}
-th,td{{border:1px solid #ddd;padding:4px;text-align:left;font-size:9px}}
+th,td{{border:1px solid #ddd;padding:4px;text-align:left;font-size:13px}}
 th{{background:#D9E2F3}}
 .leuko th{{background:#E2F0D9}}
 </style></head><body>
 <h1>PREMIUM MEDI / პრემიუმ მედი</h1>
-<p style="text-align:center;font-size:9px">საოჯახო მედიცინის ცენტრი | ტელ: 577-03-97-70</p>
+<p style="text-align:center;font-size:13px">საოჯახო მედიცინის ცენტრი | ტელ: 558-27-55-51</p>
 <h2>BL6 - სისხლის საერთო ანალიზი CBC</h2>
 <p><b>პაციენტი:</b> {fd.get('first_name','')} {fd.get('last_name','')}, {fd.get('age','')} წ.
 &nbsp;&nbsp; <b>თარიღი:</b> {fd.get('test_date','')}</p>
@@ -766,23 +757,24 @@ def urine_print():
     _save_docx_and_register(doc, fd, "Urine", "Urine")
 
     ph = ", ".join(URINE_TEMPLATE["header"]["phones"])
+    # HTML print (+2 font size for ALL elements)
     html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Urinalysis</title>
 <style>
 @page{{size:A4;margin:10mm}}
-body{{font-family:Arial,sans-serif;padding:10px;font-size:11px}}
-h1{{color:green;text-align:center;font-size:14px;margin:4px 0}}
-h2{{text-align:center;font-size:12px;margin:4px 0}}
-h3{{font-size:10px;margin:8px 0 4px 0}}
+body{{font-family:Arial,sans-serif;padding:10px;font-size:15px}}
+h1{{color:green;text-align:center;font-size:18px;margin:4px 0}}
+h2{{text-align:center;font-size:16px;margin:4px 0}}
+h3{{font-size:14px;margin:8px 0 4px 0}}
 p{{margin:3px 0}}
 table{{width:100%;border-collapse:collapse;margin:5px 0}}
-th,td{{border:1px solid #ddd;padding:4px;text-align:left;font-size:9px}}
+th,td{{border:1px solid #ddd;padding:4px;text-align:left;font-size:13px}}
 th{{background:#FFF2CC}}
 .micro th{{background:#E2EFDA}}
 .other th{{background:#DDEBF7}}
 </style></head><body>
 
 <h1>PREMIUM MEDI / პრემიუმ მედი</h1>
-<p style="text-align:center;font-size:9px">{URINE_TEMPLATE['header']['subtitle']} | ტელ: {ph}</p>
+<p style="text-align:center;font-size:13px">{URINE_TEMPLATE['header']['subtitle']} | ტელ: {ph}</p>
 <h2>{URINE_TEMPLATE['test_info']['code']} - {URINE_TEMPLATE['test_info']['name']}</h2>
 <p><b>პაციენტი:</b> {fd.get('first_name','')} {fd.get('last_name','')}, {fd.get('age','')} წ.
 &nbsp;&nbsp; <b>თარიღი:</b> {fd.get('test_date','')}</p>
@@ -805,7 +797,6 @@ th{{background:#FFF2CC}}
         html += f"<tr><td>{el}</td><td><b>{ev}</b></td><td>{cl}</td><td><b>{cv}</b></td></tr>"
     html += "</table>"
 
-    # სხვა მონაცემები (ლორწო/მარილები/ბაქტერიები/სოკო)
     html += """<h3>სხვა მონაცემები</h3>
 <table class="other"><tr><th>პარამეტრი</th><th>შედეგი</th><th>პარამეტრი</th><th>შედეგი</th></tr>"""
     others = URINE_TEMPLATE["microscopy"]["others"]
@@ -838,15 +829,16 @@ def crp_print():
     _save_docx_and_register(doc, fd, "CRP", "CRP")
 
     ph = ", ".join(CRP_TEMPLATE["clinic_info"]["phones"])
+    # HTML print (+2 font size for ALL elements)
     html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CRP</title>
 <style>
 @page{{size:A4;margin:15mm}}
-body{{font-family:Arial,sans-serif;padding:15px;font-size:12px}}
-h1{{color:green;text-align:center;font-size:16px;margin:4px 0}}
-h2{{text-align:center;font-size:14px;margin:6px 0;color:#8e44ad}}
-p{{margin:6px 0;font-size:12px}}
+body{{font-family:Arial,sans-serif;padding:15px;font-size:16px}}
+h1{{color:green;text-align:center;font-size:20px;margin:4px 0}}
+h2{{text-align:center;font-size:18px;margin:6px 0;color:#8e44ad}}
+p{{margin:6px 0;font-size:16px}}
 table{{width:100%;border-collapse:collapse;margin:12px 0}}
-th,td{{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px}}
+th,td{{border:1px solid #ddd;padding:8px;text-align:left;font-size:16px}}
 th{{background:#E8DAEF}}
 </style></head><body>
 
@@ -879,15 +871,16 @@ def trop_print():
     doc = create_troponin_document(fd)
     _save_docx_and_register(doc, fd, "Troponin", "Trop")
 
+    # HTML print (+2 font size for ALL elements)
     html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Troponin</title>
 <style>
 @page{{size:A4;margin:15mm}}
-body{{font-family:Arial,sans-serif;padding:15px;font-size:12px}}
-h1{{color:green;text-align:center;font-size:16px;margin:4px 0}}
-h2{{text-align:center;font-size:14px;margin:6px 0;color:#d35400}}
-p{{margin:6px 0;font-size:12px}}
+body{{font-family:Arial,sans-serif;padding:15px;font-size:16px}}
+h1{{color:green;text-align:center;font-size:20px;margin:4px 0}}
+h2{{text-align:center;font-size:18px;margin:6px 0;color:#d35400}}
+p{{margin:6px 0;font-size:16px}}
 table{{width:100%;border-collapse:collapse;margin:12px 0}}
-th,td{{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px}}
+th,td{{border:1px solid #ddd;padding:8px;text-align:left;font-size:16px}}
 th{{background:#FDEBD0}}
 </style></head><body>
 
@@ -914,6 +907,5 @@ window.onload=function(){{setTimeout(function(){{window.print()}},500)}}
 
 # ================== START ==================
 if __name__ == "__main__":
-    # მხოლოდ ერთხელ გახსნას ბრაუზერი
     threading.Timer(1.2, lambda: webbrowser.open("http://127.0.0.1:5000")).start()
     app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)

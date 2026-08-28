@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lipid Profile</title>
+  <style>
+    *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+    body{background:linear-gradient(135deg,#16a085,#1abc9c);min-height:100vh;margin:0;padding:20px}
+    .container{max-width:900px;margin:0 auto;background:#fff;border-radius:20px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+    .header{text-align:center;border-bottom:3px solid #16a085;padding-bottom:15px;margin-bottom:20px}
+    .logo{font-size:40px;color:#16a085}
+    .clinic-name{font-size:24px;color:#2e7d32;font-weight:bold;margin:10px 0}
+    .section{background:#f0fbf9;border-radius:15px;padding:20px;margin-bottom:20px;border-left:5px solid #16a085}
+    .section-title{color:#16a085;font-size:18px;font-weight:bold;margin-bottom:15px}
+    .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px}
+    .form-group{display:flex;flex-direction:column}
+    label{font-weight:600;color:#34495e;margin-bottom:4px;font-size:13px}
+    input, select{padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px}
+    input:focus, select:focus{outline:none;border-color:#16a085}
+    table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff}
+    th{background:linear-gradient(135deg,#16a085,#1abc9c);color:#fff;padding:12px;text-align:center;font-size:13px;border:1px solid #ddd}
+    td{padding:12px;border:1px solid #ecf0f1;font-size:13px;text-align:center;vertical-align:middle}
+    td:first-child{text-align:left;font-weight:bold}
+    .result-input{width:100%;padding:10px;border:2px solid #16a085;border-radius:8px;text-align:center;font-weight:bold;font-size:14px}
+    .buttons{text-align:center;margin-top:25px;padding-top:25px;border-top:2px dashed #bdc3c7}
+    .btn{padding:15px 40px;font-size:16px;font-weight:bold;border-radius:50px;border:none;cursor:pointer;margin:8px;transition:all .3s;color:#fff}
+    .btn-print{background:linear-gradient(135deg,#3498db,#2980b9)}
+    .btn-word{background:linear-gradient(135deg,#2c3e50,#34495e)}
+    .btn:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+    .required::after{content:' *';color:#e74c3c}
+    .back-btn{display:inline-block;margin-bottom:15px;padding:8px 16px;background:#95a5a6;color:#fff;text-decoration:none;border-radius:8px;font-size:13px}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">🫀</div>
+    <div class="clinic-name">PREMIUM MEDI / პრემიუმ მედი</div>
+    <div>{{ template.clinic_info.description }} | ტელ: {{ template.clinic_info.phones|join(', ') }}</div>
+  </div>
+
+  <form id="mainForm" method="POST">
+    <div class="section">
+      <div class="section-title">პაციენტის ინფორმაცია</div>
+      <div class="form-row">
+        <div class="form-group"><label class="required">სახელი</label><input type="text" name="first_name" id="first_name" required></div>
+        <div class="form-group"><label class="required">გვარი</label><input type="text" name="last_name" id="last_name" required></div>
+        <div class="form-group"><label>პირადი ნომერი</label><input type="text" name="personal_id"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>სქესი</label>
+          <select name="sex">
+            <option value="მამრობითი">მამრობითი</option>
+            <option value="მდედრობითი">მდედრობითი</option>
+          </select>
+        </div>
+        <div class="form-group"><label>ასაკი</label><input type="number" name="age"></div>
+        <div class="form-group"><label class="required">თარიღი</label><input type="date" name="test_date" id="test_date" required></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">{{ template.test_details.subtitle }}</div>
+      <table>
+        <thead>
+          <tr>
+            <th>დასახელება</th>
+            <th>სასურველი</th>
+            <th>ზღვარზე მაღალი</th>
+            <th>მაღალი</th>
+            <th>შედეგი</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in template.test_results %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td style="white-space:pre-line">{{ item.desirable }}</td>
+            <td style="white-space:pre-line">{{ item.borderline }}</td>
+            <td style="white-space:pre-line">{{ item.high }}</td>
+            <td><input type="text" class="result-input" name="res_{{ item.code }}"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">გამოკვლევის ინფორმაცია</div>
+      <div class="form-row">
+        <div class="form-group"><label>სამედიცინო დაწესებულება</label><input type="text" name="facility" value="PREMIUM MEDI"></div>
+        <div class="form-group"><label>ექიმი</label><input type="text" name="doctor_name"></div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button type="button" class="btn btn-print" onclick="submitForm('/generate_lipid_pdf')">🖨️ ბეჭდვა</button>
+      <button type="button" class="btn btn-word" onclick="submitForm('/generate_lipid_doc')">💾 Word-ში შენახვა</button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('test_date').value = new Date().toISOString().split('T')[0];
+
+function validate(){
+  const fn = document.getElementById('first_name').value.trim();
+  const ln = document.getElementById('last_name').value.trim();
+  const dt = document.getElementById('test_date').value.trim();
+  if(!fn || !ln || !dt){ alert('შეავსეთ სავალდებულო ველები'); return false; }
+  return true;
+}
+
+function submitForm(actionPath){
+  if(!validate()) return;
+  const f = document.getElementById('mainForm');
+  f.action = actionPath;
+  f.target = actionPath.includes('pdf') ? '_blank' : '';
+  f.submit();
+}
+</script>
+</body>
+</html>

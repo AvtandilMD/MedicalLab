@@ -50,6 +50,7 @@
     .btn-urine{background:linear-gradient(135deg,#f39c12,#d68910)}
     .btn-crp{background:linear-gradient(135deg,#9b59b6,#8e44ad)}
     .btn-trop{background:linear-gradient(135deg,#e67e22,#d35400)}
+    .btn-lipid{background:linear-gradient(135deg,#16a085,#1abc9c)}
     .btn-icon{font-size:26px;width:36px;text-align:center}
     .btn-text{text-align:left;flex:1}
     .btn-code{font-size:10px;opacity:0.85;font-weight:normal;display:block;margin-top:2px}
@@ -85,6 +86,7 @@
     <a href="/urine" class="btn btn-urine"><span class="btn-icon">🧪</span><span class="btn-text">შარდის საერთო ანალიზი<span class="btn-code">UR.7 - Urinalysis</span></span></a>
     <a href="/crp" class="btn btn-crp"><span class="btn-icon">🧬</span><span class="btn-text">C-რეაქტიული ცილა<span class="btn-code">BL.7.9.1 - CRP/hsCRP</span></span></a>
     <a href="/trop" class="btn btn-trop"><span class="btn-icon">❤️</span><span class="btn-text">ტროპონინის ტესტი<span class="btn-code">BL.7.8 - Troponin</span></span></a>
+    <a href="/lipid" class="btn btn-lipid"><span class="btn-icon">🫀</span><span class="btn-text">ლიპიდური სპექტრი<span class="btn-code">Lipid Panel</span></span></a>
   </div>
 
   <!-- SIGNATURE (Moved to bottom) -->
@@ -107,14 +109,17 @@
 
 <script>
 async function refreshSignaturePreview(){
-  const r = await fetch('/signature/status');
-  const data = await r.json();
-  const box = document.getElementById('sigPreview');
-  if(data.exists){
-    box.innerHTML = `<img src="${data.url}" alt="signature">`;
-  } else {
-    box.textContent = 'ხელმოწერა ჯერ არ არის ატვირთული';
-  }
+  try{
+    const r = await fetch('/signature/status');
+    if(!r.ok) return;
+    const data = await r.json();
+    const box = document.getElementById('sigPreview');
+    if(data.exists){
+      box.innerHTML = `<img src="${data.url}" alt="signature">`;
+    } else {
+      box.textContent = 'ხელმოწერა ჯერ არ არის ატვირთული';
+    }
+  }catch(e){console.log(e)}
 }
 
 async function uploadSignature(){
